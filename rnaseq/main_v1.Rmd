@@ -1,0 +1,583 @@
+---
+title: "Single-Cell RNA sequencing (scRNA-Seq)"
+output:
+  pdf_document: default
+  html_document: default
+bibliography: citation.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE
+                      ,results = 'hide'
+                      ,cache = T
+                      ,eval = T
+                      ,echo = F
+                      # ,cache = F
+                      ,eval.after = c('fig.cap','code')
+                      # eval = F,
+                      ,results ='hide'
+                      )
+options(warn=  -1)
+options(stringsAsFactors = F)
+library('edgeR')
+library('dplyr')
+library('splatter')
+library('scater')
+library('M3Drop')
+source('helper.R')
+```
+
+
+
+
+
+
+<!-- ### General question answering, experimental consideration of RNA-seq  -->
+# Introduction
+
+single cell RNA sequencing (scRNA-Seq) is becoming an increasingly popular technique due to advances in experimental techniques in terms of tagging cells before PCR-amplification so that its mRNA can be uniquely identified after sequenced. Importantly, microfluidic-based tagging has greatly improved the throughput of the tagging so that larger cellular population is now amenable to analysis.
+
+scRNA-Seq is analogous to doing multiple runs of bulk RNA-Seq - that is, in both experiments, the captured RNA are reverse-transcribed (RT), amplified, pooled and seqeunced. The difference is that the tagging in bulk RNA-Seq is less vigorous and samples are usually tagged according to the tissue and the condition from which it is acquired. Whereas in scRNA-Seq, the tagging is down to the cellular level and each cell can be uniquely identified. Recently, the introduction of unique molecular identifier (UMI) seeks an even more rigorous tagging where each transcript is assigned a barcode during RT for later identifictaion.
+
+Various protocols exists for scRNA-Seq and varies in their throughput and availablity of external standards for normalisation, including spike-ins and UMI. The microfluidic-based protocol utilises droplet to isolate cell from each other so that they can be uniquely labeled. The captured mRNA in each droplet then undergoes RT and forms "single-cell transcriptome attached to micro-particles" (STAMP), which are then pooled and undergo bulk PCR amplification. The microwell based protocol is different in it sepearates cell by pipetting or laser capturing. It is important that both protocol carried out RT at single-cell level, which potentially caused the dropout problem. 
+After obtaining DNA reads using next-generation-sequencing (NGS), the reads are mapped back to a set of features using some reference (e.g: genome, transcriptome) and identified by their barcodes. It was noted some reads may map to pesudogenes due to sequencing error that could be incorrectly attributed as  (@Andrews2016)
+
+## Comparison between single-cell RNA-SEQ against bulk RNA-seq
+
+1. Obviously the scRNA-SEQ will focus on quantifying as in RNA-seq. But given the heterogeneity, more information should be kept for scRNA-Seq. "In addition to resolving cellular heterogeneity, scRNA-seq can also provide important information about fundamental characteristics of gene expression" @Haque2017
+
+1. The mathematical relation between scRNA and bulk-RNA is very simple : bulk-RNA is simply the ensemble average of the scRNA-Seq. This is similar to the relation between gene and isoform: the gene expression is the average of different isoforms. In other words, in additional to genic expression, we now associate each read with a new variable: the cell it comes from.
+
+
+Advantage of bulk RNA-Seq:
+
+1. Less computationally intensive
+1. Signal is more robust and subject to less dispersion
+1. Easy experimental setup
+
+Disadvantage of bulk RNA-Seq:
+
+1. The data is only an ensemble average and limited the resolution.
+1. Samples can be heterogeneous which introduces confounders that interfere with the interested biological signal.
+
+One of the biggest application of bulk RNA-Seq is detecting differential expression between physiological conditions, which can be induced by altering transcription factor, pathogen presenting, application of drug, etc. More exotic questions like gene imprinting is also within the capability, in which case the transcription was altered according to the direction of breeding. In summary, as long as the transcription or the change of transcription is homogeneous within the bulk, then bulk RNA-Seq will give enough information to validate any proposed hypothesis.
+
+Advantage of scRNA-Seq:
+
+1. More detailed data that permits exploration down to the cellular level. This includes 
+1. Larger sample size permits easier estimation for dispersion parameter
+
+
+Disadvantages:
+
+1. Computationally intensive
+1. Subject to alleic dropout, a PCR artifact that greatly increased technical noise
+1. Library size is more diversed and harder to model, as a result of both increased technical variability and inherent diverity of cell sizes. This could couple to cell lineage and cell cycle.
+1. The signal is richer and noiser, which means more sophiscated models are required to remove confounders, as well as recovering a robust biological signal.
+
+scRNA-Seq is unique in capable of answering questions that requires resolution at cellular level that could not be achieved easily by physical isolation. These include cell cycle, cell differentiation and tissue development, stochastic nature of gene expression. Theoretically, scRNA-Seq is capable of answering any question answerable by RNA-Seq, albeit at a higher cost and complexity.
+
+Because of the relative recentness of scRNA-Seq, its potential is still being actively investigated. One of its fruitful application is visualising cell differentiation as trajectories in the transcription profile, which proves to be difficult to model given the highly noise nature of the data. It also allowed delineation of tumour heterogeneity, where neoplastic, non-neoplastic and immune cells can be distingushed from each other to allow better biomarker to be devised (@Muller2017). It remains unclear how to devise meaningful biological hypotheses at a suitable granularity that can be effectively tested with scRNA-Seq, since most of the hypotheses will be micro-based and does not easily relate to higher hierarchy like tissue/organ level.
+
+## Allelic dropout
+
+Allelic dropout refers to the phenomena that a feature shows zero count whereas the underlying true count is non-zero in the original mRNA extraction. In other words, the assumption that read-count of this feature follows a Poisson/negative-binomial distribution is violated, and instances with zero counts are greatly enriched. One of the explanation is the probability of RT failure, a Michalie-Menten process, is greatly increased for mRNA count below a certain threshold (@Andrews2016). Nevertheless, how much does this model supersedes the negative-binomial model awaits examination. The increased RT failure rate is also reminiscent of the fact that scRNA-Seq typically starts with a smaller amount of mRNA extraction (appx. 10pg) as compared to bulk RNA-Seq (appx. 100ng). 
+
+
+# Methods and Results
+
+## Data simulation with splatter
+
+Here $\mu$ denotes the rate parameter of the Poisson distribution from which the read count is sampled from. $m \sim Pois(\mu)$
+
+### Batch effect/group effect is simulated by mutiplying a factor sampled from 2 superposed log-normal distribution
+
+
+$$
+\begin{aligned}
+\mu_{igb} = \mu_{ig} b_b c_{ig}\\
+b_b = L_b  (2s - 1), where \\
+L_b\sim Lognormal(loccation,scale^2) \\
+s\sim Bernoulli(0.5)
+\end{aligned}
+$$
+
+### Differential expression is similarly simulated using a gene-specific multiplicative factor
+$$
+\begin{aligned}
+\mu_{igb} = \mu_{i} b_b c_{ig} \\
+c_{ig} = L_{ig}   (2 s_{ig} - 1), where \\
+L_{ig}\sim Lognormal(loccation,scale^2) \\
+s_{ig}\sim Bernoulli(p)
+\end{aligned}
+$$
+
+Splatter use a logistic distribution to model the probability of dropout events. That is to say, there is a threshold for mean expression, below which dropout becomes prevalent. One advantage of using logistic probability is that it allows easier fitting for the binary observation (no RNA fragment/some RNA fragment)
+
+***After examining the literature (@Zappia2017), the most complicated step is modelling BCV in observed RNA-seq data with inverse-chi-squared distribution , which we do not intend to elaborate here*** 
+
+###Simulation scheme:
+For all simulations, we set the batch parameter to follow a dirac distribution $b_b \sim \delta(1)$ so that there is no difference between batches. Expression counts for 2000 genes are simulated for 2 conditions/groups of equal sample size using default parameters. Four batches are simulated, each containing 100 cells, which are later pooled to mimic bulk RNA-Seq results. The pooling essentially sums up the readcounts for each feature over all cells in this batch. For differential expression, the non-dropout counts (TrueCounts) is used. The dropout is set to follow a logistic distribution centered at 3, corresponding to an expression count of `r round(exp(3),1)`.
+
+```{r data__simulation__dropout_use}
+set.seed(0)
+use.DropOut = T
+params0 <- newSplatParams()
+params1 <- setParams(params0,
+                     nGenes=2000,
+                     batchCells = c(20, 20, 20, 20)*5,
+                     batch.facLoc = 0,batch.facScale = 0, ### dirac distribution
+                     group.prob = c(0.5, 0.5),
+                     ,dropout.present = use.DropOut
+                     ,dropout.mid=3
+                     )
+sim.groups.0<- splatSimulate(params1,method = "groups", verbose = FALSE)
+assays(sim.groups.0)$logCounts <- log(assays(sim.groups.0)$counts + 1)
+sim.groups.0
+sim.groups<-sim.groups.0
+
+sim.groups.0<- calc_BatchGroupCellMeans(sim.groups.0,expr_mat='TrueCounts')
+sim.groups.0 <- normaliseExprs(sim.groups.0, method = "RLE",return_norm_as_exprs = F)
+assays(sim.groups.0)$logcounts <- log(assays(sim.groups.0)$counts + 1)
+assays(sim.groups.0)$counts_CPM<- calculateCPM(sim.groups.0)
+# ?calculateCPM
+assays(sim.groups.0) %>%names
+# ?normaliseExprs
+
+# plotPCA(sim.groups,
+#         # shape_by = "Group", colour_by = "Batch",
+#         shape_by = "Batch", colour_by = "Group",
+#         exprs_values = "logCounts")
+# assays(sim.groups.0) %>%names
+# library(scater)
+```
+
+
+```{r}
+# plotPCA(sim.groups.0,
+#         # shape_by = "Group", colour_by = "Batch",
+#         shape_by = "Batch", colour_by = "Group",
+#         exprs_values = "counts_CPM")
+# max(assays(sim.groups.0)$counts)
+
+```
+
+```{r}
+ASS<-assays(sim.groups.0)
+# assays()
+DIM <- dim(ASS)
+ASS$normcounts<-apply(ASS$normcounts,2,as.integer)
+genes <- rowData(sim.groups.0)$Gene
+rownames(ASS$normcounts) <- genes
+assays(sim.groups.0) <- ASS
+# as.integer(ASS$normcounts)
+# ?normaliseExprs
+range(ASS$norm_exprs)
+range(ASS$normcounts)
+```
+
+## General QC
+```{r QC__PCA, fig.cap = cap,fig.height=4}
+cap <- '\\label{fig:QC__PCA} PCA plots of unnormalised read counts(left) and RLE-normalised CPM(right)'
+p1<-plotPCA(sim.groups.0,
+        # shape_by = "Group", colour_by = "Batch",
+        shape_by = "Batch", colour_by = "Group",
+        exprs_values = "counts")
+p2<-plotPCA(sim.groups.0,
+        # shape_by = "Group", colour_by = "Batch",
+        shape_by = "Batch", colour_by = "Group",
+        exprs_values = "normcounts")
+gridExtra::grid.arrange(p1,p2, ncol =2)
+# p1%>%is
+# dge.list = list()
+```
+
+
+### Normalisation by library size is crucial
+We normalised the readcounts using RLE (Relative Log Expression)
+See figure \ref{fig:QC__PCA}. It is evident that CPM-normalisation removes most of the within-group variance, and left the inter-group variation as the dominating variance. In the scenario where batches are subject to sampling/technical noise, potentially more normalisation is required to remove unwanted variance.
+
+<!-- #### Compare PCA before and after normalisation -->
+
+
+## Testing for differentially-expressed(DE) genes
+<!-- Since BCV represent the biologically meaningful variation, we ask how does scRNA-Seq changes our estimation for BCV.  -->
+Differential expression is tested under a model-based likelihood ratio framework. Where 
+
+$$
+LR=\frac{P(alternative\ hypothesis) }{P(null\ hypothesis)}
+$$
+
+Where the null hypothesis the mean expressions of the sampled distributions are identical, and the alternative hypothesis assumes unequalness between these two parameters. Of note, a gamma prior is assumed for the mean expression parameter. (@Smyth2012)
+
+$$
+\begin{aligned}
+\psi &\sim \Gamma(\frac{1}{\phi} ,\frac{1}{\mu \phi})  \\
+m &\sim Pois(\psi) \\
+E(m) &= E(\psi) = \mu
+\end{aligned}
+$$
+And the hypotheses become:
+
+1. null: $\mu_1=\mu_2$
+2. alternative: $\mu_1\neq\mu_2$
+
+The parameter $\phi$, is called the biological coefficient-of-variation (BCV, $CV_x=std(x)/E(x)$). It captures all the inter-library variation for any single gene. Here we focus on how BCV(dispersion) affects the result of LR-test, both in scRNA-Seq and in bulk RNA-Seq. For scRNA-Seq, the dispersion is estimated using both "common" and "common-genewise" schemes, whereas for bulk RNA-Seq, it is estimated using "common", "trended" and "trended-genewise" schemes. This is mainly because the sample size for bulk RNA-Seq is too small (4 samples to estimate 2 parameters) and additional assumptions are required to constrain the estimator.
+
+### BCV/Dispersion 
+
+It is evident that tagwise/trend scheme better captures the BCV for both granularities (see figure \ref{fig:edgeR__BCV}), lowly expressed genes tend to express higher variability. However, we notice cellwise samples show a higher average CPM (count per million), reminiscent of its reduced library size. It also shows a higher BCV (~5 as compared to ~0.3 in batchwise), reflecting that scRNA-Seq is capturing more within-batch heterogeneity. As a result of accurate BCV estimation, the robustness of DE-prediction is greatly improved (see MA-plot, figure \ref{fig:edgeR__MA}).
+
+```{r edgeR__cellwise}
+
+##### Use all cells
+
+#### Priority for dispersion: tagwise > trended > common, see getDispersion()
+
+###### Select data
+# sim.groups <- sim.groups[,!duplicated(sim.groups.0$Group)]
+# idx <- !duplicated(colData(sim.groups.0)[c('Batch','Group')])
+sim.groups <- sim.groups.0
+gp_vct <- colData(sim.groups)$Group
+ASS = assays(sim.groups)
+
+#### Constuct Design matrix
+gp_vct <- colData(sim.groups)$Group
+gp_fac <- factor(gp_vct)
+design <- model.matrix(~ gp_fac)
+
+
+dge <- DGEList(
+  # counts = ASS$counts
+  counts = ASS$TrueCounts
+  # counts = round(ASS$normcounts)
+               ,group = gp_vct
+               # ,genes = rowData(sim.groups)$Gene
+               
+                                # ,'Group')
+               )
+
+# dge <- calcNormFactors(dge,method = 'RLE')
+gp_fac <- factor(gp_vct)
+design <- model.matrix(~ gp_fac)
+
+dge <- estimateDisp(dge, design = design
+                    
+                    # , trend.method = "none"
+                    # , trend.method ='locfit'
+                    ,min.row.sum = 0 #### Prevent dropping genes
+                    )
+dge.list[['cellwise']] <- dge
+```
+
+
+```{r edgeR__batchwise}
+###### Select data
+# sim.groups <- sim.groups[,!duplicated(sim.groups.0$Group)]
+idx <- !duplicated(colData(sim.groups.0)[c('Batch','Group')])
+sim.groups <- sim.groups.0[,idx]
+ASS = assays(sim.groups)
+
+#### Constuct Design matrix
+gp_vct <- colData(sim.groups)$Group
+gp_fac <- factor(gp_vct)
+design <- model.matrix(~ gp_fac)
+
+
+dge <- DGEList(counts = ASS$BatchGroupCellMeans
+               ,group = gp_vct
+               # ,genes = rowData(sim.groups)$Gene
+               
+                                # ,'Group')
+               )
+dge <- calcNormFactors(dge,method='RLE')
+# dge$samples
+
+##### Esitmation dispersion
+# dge <- estimateGLMCommonDisp(dge, design)
+# dge <- estimateGLMTrendedDisp(dge, design)
+# dge <- estimateGLMTagwiseDisp(dge, design)
+dge <- estimateDisp(dge, design = design
+
+                    # , trend.method = "none"
+                    , trend.method ='locfit'
+                    ,tagwise = T
+                    ,min.row.sum = 0 #### Prevent dropping genes
+                    )
+dge <- estimateGLMTagwiseDisp(dge, design)
+
+dge.list[['batchwise']] <- dge
+
+
+```
+
+
+```{r}
+# ASS$BCV
+```
+
+```{r}
+ASS = assays(sim.groups.0)
+mat<-ASS$normcounts
+# assays(sim.groups)
+# mat = ASS$counts
+# mat = ASS$logCounts
+MEAN = apply(mat,MARGIN = 1,mean)
+VAR = apply(mat,MARGIN = 1,var)
+MEANsq = apply(mat^2,MARGIN = 1, mean)
+par(mfrow=c(1,2))
+plot(MEAN^2, VAR - MEAN
+     ,xlim = c(1,1E6),ylim = c(1,5E4)
+     # ,log = 'xy'
+     )
+mdl <- lm(MEAN^2~ VAR - MEAN)
+# line(mdl)
+
+plot(mdl)
+
+plot(MEAN^2, MEANsq, pch = 2
+     ,xlim = c(1,1E6),ylim = c(1,1E6)
+     ,log='xy'
+     )
+```
+
+```{r}
+alpha = (VAR - MEAN)/MEAN^2
+hist(alpha,100)
+BCV = apply(ASS$BCV,1,mean)
+
+plot(alpha,BCV,log = 'xy')
+abline(1,1)
+# plot(sort(MEAN))
+
+# ASS$CellMeans
+# plot(ASS$logCounts,ASS$counts)
+
+```
+
+```{r edgeR__BCV, fig.cap = cap, fig.height= 3}
+cap = '\\label{fig:edgeR__BCV} The inter-library variation under different granularity'
+par(mfrow = c(1,2)
+      # ,omi = c(.1,.1,.1,.1)
+      # ,mar = c(3.4,1,1,1)
+      ,mai=c(0.5,0.5,0.2,0.1)
+      ,omi=c(0.2,0.0,0.5,0.)
+      ,oma = c(.1,.1,.1,.1)
+      ,mgp=c(1.5,0.4,0.1)
+      )
+for (granularity in c('cellwise','batchwise')){
+  dge <- dge.list[[granularity]]
+  plotBCV(dge,main = granularity,xlim = c(0,15))
+}
+```
+
+```{r}
+# dge.list$cellwise$AveLogCPM
+```
+```{r edgeR__MA, fig.cap = cap}
+cap = '\\label{fig:edgeR__MA} MA-plots colored at FDR=0.05 (under BH correction)'
+
+pred.DE<-list()
+
+# granularity = 'cellwise'
+par(mfrow = c(2,2)
+      # ,omi = c(.1,.1,.1,.1)
+      ,mai=c(0.4,0.5,0.2,0.1)
+      ,omi=c(0.2,0.0,0.5,0.)
+      ,oma = c(.3,.1,.3,.1)
+      ,mgp=c(1.5,0.4,0.1)
+      )
+  
+for (granularity in c('cellwise','batchwise')){
+  dge <- dge.list[[granularity]]
+  for (disp.name in c('common.dispersion','tagwise.dispersion'))
+  # for (disp.name in c('common.dispersion','trended.dispersion','tagwise.dispersion'))
+  {
+    if(granularity=='batchwise' & disp.name=='tagwise.dispersion'){next}
+    BCV <-  dge[[disp.name]]
+    if (!is.null(BCV)){
+      fit <- glmFit(dge, design = NULL, dispersion = BCV)
+      res <- glmLRT(fit)
+      plotMD(res, main =  paste(granularity, disp.name))
+      
+    }
+  }
+}
+
+# dge$design
+
+```
+
+```{r eval = F}
+{
+  # ?edgeR::plotMD
+  getAnywhere(plotMD)
+  plot_panel(dge,fit,res)
+  cor(res$table$LR,de$abs.A,method='spearman')
+  plot(y=res$table$LR,x=de$abs.A,cex = (de$M))
+  plot(y=res$table$LR,x=de$abs.A,cex = to_norm(de$M)+1)
+  isDE<-decideTestsDGE(res, p.value = 0.05) ### FDR cutoff of 0.05 by default
+
+  pred.DE[[disp.name]] = which(isDE!=0)
+  plot(de$M,de$A,col = 2 + isDE)
+  # plot(y=res$table$logFC,x=de$A)
+  # plot( (de$M+11)*de$abs.A,res$table$LR)
+  weighted.corr<-wCorr::weightedCorr((de$M+11)*de$abs.A,res$table$LR,method='spearman')
+  title(main = weighted.corr)
+  print(weighted.corr)
+  # boot::corr(res$table$logFC,de$abs.A,w = de$M)
+  
+}
+  to_norm <- function(x){(x-mean(x))/sd(x)}
+
+```
+
+<!-- #### Dispersion in differential expression -->
+
+<!-- The likelihood ratio indicates how likely the  -->
+
+<!-- Because genes with lower average CPM tends to express more dispersion, it tends to be associated with a low confidence in LR-test. However, multiple schemes for estimating dispersion exists. If the dispersion is assumed constant across all genes (the "common" scheme), then there will be less power in separating biological signal from technical noise, causing more DE to be called during the LR-test.  -->
+\begin{figure}
+\begin{center}
+\caption{CPM matrix after dropout of DE genes predicted at batchwise level using tagwise dispersion. Left: without dropout.Right:with dropout}
+\label{fig:hmap__batchwise}
+\end{center}
+\end{figure}
+
+
+Notice we have yet to quantify this robustness in DE-precdition, due to difficulty in constructing the ground truth set: how to derive the set of true DE genes from the simulation parameters? The estimated fold-change is produced from fitting the glm and correlates very well with the theoretical fold-change, but does not tell anything about the quality of the LR-test. At the moment, we use heatmap to allow visually evalute the DE-prediction. Striking, batchwise model produces much better prediction of DE than cellwise model  (see figure \ref{fig:hmap__cellwise},\ref{fig:hmap__batchwise}). Whether this is an artifact of my computation or a genuine difference between the two models, requires a further investigation.
+
+```{r}
+# cap = '\\label{fig:edgeR__MA} MA-plots colored at FDR=0.05 (under BH correction)'
+
+ASS<- assays(sim.groups.0)
+ZF.counts <- ASS$counts
+ASS$counts <- ASS$TrueCounts
+assays(sim.groups.0) <- ASS; ASS$TrueCounts_CPM <-calculateCPM(sim.groups.0);
+ASS$counts <- ZF.counts
+assays(sim.groups.0) <- ASS
+
+cD <- colData(sim.groups.0)
+```
+
+
+```{r hmap__cellwise,fig.cap = cap,fig.height=4}
+cap = '\\label{fig:hmap__cellwise} CPM matrix of DE genes predicted at cellwise level using tagwise dispersion'
+
+granularity ='cellwise'
+disp.name   <- 'tagwise.dispersion'
+
+dge <- dge.list[[granularity]]
+fit <- glmFit(dge, design = NULL, dispersion = BCV);res <- glmLRT(fit);
+
+isDE<-decideTestsDGE(res, p.value = 0.05) ### FDR cutoff of 0.05 by default
+# ?decideTestsDGE(res, p.value = 0.05)
+# order(res$)
+de.geneidx <- which(isDE!=0)
+length(de.geneidx)
+try({M3Drop::M3DropExpressionHeatmap(de.geneidx,ASS$TrueCounts_CPM,cell_labels = cD$Group,key_genes = NA)})
+
+# try({M3Drop::M3DropExpressionHeatmap(de.geneidx,ASS$counts_CPM,cell_labels = cD$Group)})
+```
+
+```{r hmap__batchwise,fig.cap = cap,fig.height=4,fig.width=4}
+# cap = '\\label{fig:hmap__cellwise} CPM matrix of DE genes predicted at batchwise level using tagwise dispersion'
+
+granularity='batchwise'
+disp.name <- 'tagwise.dispersion'
+
+dge <- dge.list[[granularity]]
+fit <- glmFit(dge, design = NULL, dispersion = BCV);res <- glmLRT(fit);
+isDE<-decideTestsDGE(res, p.value = 0.05) ### FDR cutoff of 0.05 by default
+
+de.geneidx <- which(isDE!=0)
+try({par(mar = c(1.4,.1,1,1));M3Drop::M3DropExpressionHeatmap(de.geneidx,ASS$TrueCounts_CPM,cell_labels = cD$Group, key_genes=NA)})
+# title(main = 'hi')
+
+# try({M3Drop::M3DropExpressionHeatmap(de.geneidx,ASS$counts_CPM,cell_labels = cD$Group)})
+```
+```{r hmap__batchwise__drop,fig.cap = cap,fig.height=4,fig.width=4}
+cap = '\\label{fig:hmap__cellwise} CPM matrix after dropout of DE genes predicted at batchwise level using tagwise dispersion'
+
+granularity='batchwise'
+disp.name <- 'tagwise.dispersion'
+
+dge <- dge.list[[granularity]]
+fit <- glmFit(dge, design = NULL, dispersion = BCV);res <- glmLRT(fit);
+isDE<-decideTestsDGE(res, p.value = 0.05) ### FDR cutoff of 0.05 by default
+
+de.geneidx <- which(isDE!=0)
+try({par(mar = c(1.4,.1,1,1));M3Drop::M3DropExpressionHeatmap(de.geneidx,ASS$normcounts,cell_labels = cD$Group, key_genes=NA)})
+# title(main = 'hi')
+
+# try({M3Drop::M3DropExpressionHeatmap(de.geneidx,ASS$counts_CPM,cell_labels = cD$Group)})
+```
+
+
+
+```{r dropout__MM,fig.cap = cap,fig.height=4}
+cap = '\\label{fig:dropout__MM} Distribution of dropout events'
+par(mfrow = c(1,2)
+      # ,omi = c(.1,.1,.1,.1)
+      ,mai=c(0.4,0.5,0.2,0.1)
+      ,omi=c(0.2,0.0,0.5,0.)
+      ,oma = c(.3,.1,.3,.1)
+      ,mgp=c(1.5,0.4,0.1)
+      ,cex = 0.7
+    )
+M3Drop::M3DropDropoutModels(ASS$TrueCounts)
+title(main='True counts without dropout')
+M3Drop::M3DropDropoutModels(ASS$counts)
+title(main='Counts after applying dropout')
+# M3Drop::M3DropDropoutModels(ASS$counts_CPM)
+```
+
+<!-- We are still struggling to find a good way to specify the ground truth, but the observation is that as estimation for dispersion becomes more specific, the LR-test becomes increasingly conservative. -->
+
+
+<!-- Simple division of the multiplicative factors gives a fold-change factor, which correlates very well with the prediction, regardless of the dispersion used in LR-test. -->
+
+<!-- The glmFIT would give the  -->
+
+
+
+## Dropout 
+We adjusted the dropout midpoint so that the simulated data resembles real data (@) in their distribution of dropout probabilty, often modeled as a function of average CPM of non-zero emissions:
+$$
+P(m=0 )= f(E(m|m>0))
+$$
+Importantly, after application of dropout, the previously identified DE-genes are masked by noise on the CPM matrix (figure \ref{fig:hmap__batchwise}right), possibly due to it compromising the estimation for library size and adding noise to the biological signal. The dropout should be taken as a phenomena that breaks the Poisson/NB distribution assumption, and may be visualised by fitting a Michalis-Menten curve to the dropout probability distribution (figure \ref{fig:dropout__MM}), with a bigger $K$ indicating more severe dropout. Whether other packages like zinbwave/BASiCS is capable of improving this situation requires further investigation.
+
+## Future
+
+1. Explore how true batch effects can be removed.
+1. Seek a quantitaive evaluation of DE-prediction
+1. Explore DE-prediction with noisy dataset.
+
+# References:
+<!-- ##### Use PRBE to becnhmark the three dispersion information. -->
+
+
+
+
+
+<!-- #### Stage Conclusion: -->
+<!-- Single cell-based estimation is a lot more sensitive to  -->
+
+<!-- DE-differentially expressed -->
+
+<!-- I visualised the prediction for DE by  -->
+
+<!-- 1. Correlation plot: theoretical-logFC against fitted-logFC -->
+<!-- 2. Volcano plot of fitted-LR(likelihood ratio) against fitted-logFC -->
+
+<!-- Definition of LR? -->
+
+<!-- From correlation plot we identified false positives that exhibited spurious logFC with a theoretical-logFC of 0 (colored red). This group is recapitulated in the volcano plot as having low LR. -->
+
+<!-- **Incorrect**:Side observation: single-cell result is less sensitive to FDR correction (BH usedd here), whereas simulated bulk is more prone, likely due to the fact that the signal from scRNA-seq is richer and hence more robust. It's also possible that the simulated bulk-RNA data has some statistical feature that prevented accurate estimation of P-value/likelihood ratio. However, I observed that normalising P-value by dividing it by exp(-logFC) restored the ROC curve. -->
+<!-- **Reason**: The median across cell group is taken -- value is too stable for any dispersion to be estimated!!! -->
+
+
+
+<!-- #### Further:  -->

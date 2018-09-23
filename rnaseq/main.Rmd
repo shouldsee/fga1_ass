@@ -1,0 +1,1407 @@
+---
+title: "main"
+output:
+  pdf_document: default
+  html_document: default
+bibliography: citation.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE
+                      ,results = 'hide'
+                      ,cache = T
+                      ,eval = F
+                      ,echo = F
+                      # ,cache = F
+                      )
+options(stringsAsFactors = F)
+source('helper.R')
+```
+
+```{r}
+# system.file(package = 'BiocInstaller')
+# Sys.getenv('RLIB_PUBLIC')
+# plib <- paste0(Sys.getenv('DATA'),'RLib')
+# BiocInstaller::biocLite('splatter', lib = plib)
+
+library('edgeR')
+library('DESeq')
+library('DESeq2')
+library('DiffBind')
+library('dplyr')
+library('splatter')
+
+
+# BiocInstaller::biocLite(c('edgeR','DESeq','DESeq2'), lib = plib,Ncpus = 10)
+# for (pkg in c('edgeR','DESeq','DESeq2','DiffBind')){
+#   eval(sprintf('library(%s)',pkg))%>%print
+# }
+```
+
+
+
+#### General methodology for RNA-SEQ
+1. Find out the quantity and sequences of RNA within a mixture, using RNA reads as a proxy.
+
+Problems:
+
+- De-novo assembly of transcripts (Trinity)
+- Genome-based mapping/assembly (cufflink/tophat)
+- Transcriptom-based mapping
+
+Depending on the scientific question to be asked, methods shall be commanded as appropriate. The common granularity of mapping includes: gene, transcript/isoform, haplotype-specific isoforms. However to detect SNP one must be stringent when aligning. How to deal with un-mapped reads, is another problem.
+
+
+1. preserve haplotye/isoform information is important for certain hypotheses testing
+
+1. Multiple reads to mulitple transcript-sets: a deconvolution problem
+
+1. Normalisation and Hypothesis testing: Obvious technical variations need to be corrected to allow for meaningful comparison, between biological samples.
+
+- library size 
+- GC content/sequence composition
+- transcript length
+
+## Comparison between single-cell RNA-SEQ against bulk RNA-seq
+
+1. Obviously the scRNA-SEQ will focus on quantifying as in RNA-seq. But given the heterogeneity, more information should be kept for scRNA-Seq.
+
+1. The mathematical relation between scRNA and bulk-RNA is very simple : bulk-RNA is simply the ensemble average of the scRNA-Seq. This is similar to the relation between gene and isoform: the gene expression is the average of different isoforms. In other words, in additional to genic expression, we now associate each read with a new variable: the cell it comes from.
+
+
+"In addition to resolving cellular heterogeneity, scRNA-seq can also provide important information about fundamental characteristics of gene expression" @Haque2017
+
+"sensitivity for lowly expressed trnnscripts, full length identification, throughput/cost per cell"
+
+
+
+Research interest:
+
+1.  Supervised testing: differential expression between given treatments
+1. Unsupervised learning: detecting sub-population/patterns of expression within cell populations.
+
+1. test-set:benchmark against bulk RNA-seq DE results. Does the scRNA allows identification of DE at a similar level?  According to central-limit-theorem, using a larger sample will certainly reduce the noise.
+
+1. Granularity: by analogy to gene-isoform problem, grouping can be done at different granularity. If we group quisecent/active T-cell together, then we will not see any difference at that level. However, this information is not required in DE analysis anyway.   Think about the signal, cell differentiation/trajectory tracking is obviously one of them. DE is obviously another.  But remembering the lesson from ChipSeq, the choice made in preprocessing can have an effect on the final output.
+
+1. Be cautious about batch effect and technical noise
+
+
+
+```{r}
+# getParam(params, "nGenes")
+# Load example data
+data("sc_example_counts")
+# Estimate parameters from example data
+params <- splatEstimate(sc_example_counts)
+# Simulate data using estimated parameters
+sim <- splatSimulate(params, dropout.present = FALSE)
+```
+
+
+![dropout](https://hemberg-lab.github.io/scRNA.seq.course/22-de-intro_files/figure-html/zero-inflation-plot-1.png)
+
+```{r}
+params <- newSplatParams()
+params
+params <- setParam(params, "nGenes", 5000)
+
+data("sc_example_counts")
+head(sc_example_counts)
+params.1 <- splatEstimate(sc_example_counts)
+params.1
+dim(sc_example_counts)
+sim <- splatSimulate(params.1, nGenes = 2000, dropout.present = FALSE)
+sim2<-SingleCellExperiment(sc_example_counts)
+# ?SingleCellExperiment
+comparison <- compareSCEs(list(Splat = sim, Simple = sim))
+library("ggplot2")
+ggplot(comparison$PhenoData,
+       aes(x = total_counts, y = total_features, colour = Dataset)) +
+    geom_point()
+# plotPCA(sim, exprs_values = "counts")
+# plotP
+# sc_example_counts[1:5, 1:5]
+# is(sc_example_counts)
+```
+
+
+```{r}
+fac.loc = 1
+fac.scale= 1
+v <- splatter:::getLNormFactors(n.facs=1000000, sel.prob=1, neg.prob=1.0, fac.loc, fac.scale)
+log(v)%>%summary
+# mean(log(v)
+sd(log(v)) %>%print
+plot(density(log(v)))
+
+fac.loc = 2
+fac.scale= 1
+v <- splatter:::getLNormFactors(n.facs=1000000, sel.prob=1, neg.prob=1.0, fac.loc, fac.scale)
+log(v)%>%summary
+sd(log(v)) %>%print
+# mean(log(v)
+# sd(log(v))
+plot(density(log(v)))
+
+fac.loc = 2
+fac.scale= 1
+v <- splatter:::getLNormFactors(n.facs=1000000, sel.prob=1, neg.prob=0.5, fac.loc, fac.scale)
+log(v)%>%summary
+sd(log(v)) %>%print
+# mean(log(v)
+# sd(log(v))
+plot(density(log(v)))
+
+
+
+fac.loc = .1
+fac.scale= 1
+v <- splatter:::getLNormFactors(n.facs=1000000, sel.prob=1, neg.prob=0.5, fac.loc, fac.scale)
+log(v)%>%summary
+sd(log(v)) %>%print
+# mean(log(v)
+# sd(log(v))
+plot(density(log(v)))
+
+
+fac.loc = .1
+fac.scale= .1
+v <- splatter:::getLNormFactors(n.facs=1000000, sel.prob=1.0, neg.prob=0.5, fac.loc, fac.scale)
+log(v)%>%summary
+sd(log(v)) %>%print
+# mean(log(v)
+# sd(log(v))
+
+#### Batch effect is simulated by mutiplicating a factor sampled from 2 superposed log-normal distribution
+
+
+plot(density(log(v)))
+
+```
+
+#### Batch effect is simulated by mutiplicating a factor sampled from 2 superposed log-normal distribution
+
+$$
+\begin{aligned}
+\mu_{igb} = \mu_{ig}*b_b *c_{ig}\\
+b_b = L_b * (2*s - 1), where \\
+L_b\sim Lognormal(loccation,scale^2) \\
+s\sim Bernoulli(0.5)
+\end{aligned}
+$$
+### Differential expression is similarly simulated using a gene-specific multiplicative factor
+$$
+\begin{aligned}
+\mu_{igb} = \mu_{i}*b_b*c_{ig} \\
+c_{ig} = L_{ig} * (2*s_{ig} - 1), where \\
+L_{ig}\sim Lognormal(loccation,scale^2) \\
+s_{ig}\sim Bernoulli(p)
+\end{aligned}
+$$
+### Dropout (Zero-inflated negative binomial)
+
+```{r}
+### https://github.com/Oshlack/splatter/blob/0ab627534aa9c50725ebfb2002e3cd5ee080dafa/R/splat-simulate.R
+# params
+logistic <- function(x, x0, k) {
+    1 / (1 + exp(-k * (x - x0)))
+}
+xs = seq(-1,1,0.1)
+plot(xs,logistic(xs,0,-10))
+#     drop.prob <- sapply(seq_len(nCells), function(idx) {
+#             eta <- log(cell.means[, idx])
+#             return(logistic(eta, x0 = dropout.mid, k = dropout.shape))
+# })
+```
+
+Splatter use a logistic distribution to model the probability of dropout events. That is to say, there is a threshold for mean expression, below which dropout becomes prevalent. One advantage of using logistic probability is that it allows easier fitting for the binary observation (no RNA fragment/some RNA fragment)
+
+***After examining the literature @Zappia2017, the most complicated step is modelling BCV in observed RNA-seq data with inverse-chi-squared distribution , which we do not intend to elaborate here*** 
+
+
+
+Since BCV represent the biologically meaningful variation, we ask how does scRNA-Seq changes our estimation for BCV. 
+
+```{r}
+params0 <- newSplatParams()
+params1 <- setParams(params0,
+                     nGenes=1000,
+                     # batchCells = c(50, 50), group.prob = c(0.5, 0.5),
+                     batchCells = c(50, 50, 50), group.prob = c(0.5, 0.2,0.3),
+                     batch.facLoc = c(-0.5,1.0,0.5)
+                     # batch.facScale = 0.1
+                            # method = "groups", verbose = FALSE
+                     )
+
+
+# params1 <- setParams(params0,
+#                      nGenes=1000,
+#                      batchCells = c(50, 50), group.prob = c(1.0),
+#                      # batchCells = c(50, 50, 50), group.prob = c(0.5, 0.2,0.3),
+#                      batch.facLoc = c(-0.5)
+#                      # batch.facScale = 0.1
+#                             # method = "groups", verbose = FALSE
+#                      )
+
+getParams(params1,'batch.facScale')
+sim.groups<- splatSimulate(params1,method = "groups", verbose = FALSE)
+plotPCA(sim.groups,
+        shape_by = "Group", colour_by = "Batch",
+        # shape_by = "Batch", colour_by = "Group",
+        exprs_values = "counts")
+# hist(colData(sim.groups,1))
+# colData(sim.groups)
+assays(sim.groups[,1])
+x<-hist(log(counts(sim.groups[,2])),breaks = seq(0,10,0.25))
+plot(x$mids,x$counts,type = 'l')
+# sim.groups
+# colData(sim.groups[,1])
+# ?colData
+# params1
+```
+
+```{r}
+params0 <- newSplatParams()
+params1 <- setParams(params0,
+                     nGenes=5000,
+                     # batchCells = c(50, 50), group.prob = c(0.5, 0.5),
+                     batchCells = c(50, 50, 50), group.prob = c(0.5, 0.2,0.3),
+                     batch.facLoc = c(-0.5,1.0,0.5)
+                     ,dropout.present = T
+                     # ,dropout.mid  = 10,dropout.shape =-1
+                     # batch.facScale = 0.1
+                            # method = "groups", verbose = FALSE
+                     )
+params1
+# params1 
+getParams(params1,'batch.facScale')
+sim.groups<- splatSimulate(params1,method = "groups", verbose = FALSE)
+plotPCA(sim.groups,
+        shape_by = "Group", colour_by = "Batch",
+        # shape_by = "Batch", colour_by = "Group",
+        exprs_values = "counts")
+# hist(colData(sim.groups,1))
+
+# colData(sim.groups)
+assay(sim.groups,'TrueCounts')
+# assays(sim.groups)
+# assayData(sim.groups)
+# plot(assay(sim.groups,'TrueCounts'), counts(sim.groups))
+# x<-hist(log(counts(sim.groups) + 1),breaks = seq(0,10,0.25))
+# plot(x$mids,1+x$counts,type = 'l',log = 'y')
+```
+
+```{r}
+### estimate BCV for a bulk-RNA DE analyses 
+
+# BiocInstaller::biocLite("Seurat",lib = '/local/data/public/RLib')
+# install.packages('seurat',lib='/local/data/public/RLib')
+```
+
+
+```{r}
+#params1
+
+plot(res$table$LR,de$abs.A)
+cor(res$table$LR,de$abs.A,method='spearman')
+
+```
+
+```{r ulation}
+params0 <- newSplatParams()
+params1 <- setParams(params0,
+                     nGenes=2000,
+                     
+                     # batchCells = c(50, 50), group.prob = c(0.5, 0.5),
+                     # batchCells = c(20, 20, 20, 20)*5,
+                     batchCells = c(17, 20, 21, 24)*5,
+                     batch.facLoc = 0,batch.facScale = 0,
+                     # batch.facLoc = c(-0.5,1.0,0.5)
+                     group.prob = c(0.5, 0.5),
+                     ,dropout.present = F
+                     # ,group.facShape
+                     # ,de.facLoc = 1.0
+                     # ,de.facScale=1.
+                     # ,mean.shape = 1
+                     # ,outlier.prob=0
+                     # ,dropout.mid  = 10,dropout.shape =-1
+                     # batch.facScale = 0.1
+                            # method = "groups", verbose = FALSE
+                     # ,out.prob = 0
+                     # ,bcv.df = 1
+                     # ,bcv.common = 0
+                     )
+params1
+params0
+sim.groups.0<- splatSimulate(params1,method = "groups", verbose = FALSE)
+assays(sim.groups.0)$logCounts <- log(assays(sim.groups.0)$counts + 1)
+sim.groups.0
+sim.groups<-sim.groups.0
+
+
+plotPCA(sim.groups,
+        # shape_by = "Group", colour_by = "Batch",
+        shape_by = "Batch", colour_by = "Group",
+        exprs_values = "logCounts")
+# library(scater)
+# detach(name = 'Rcade')
+# plotPCA<-scater::plotPCA
+# sim.groups
+
+# ASS
+# params
+# csim.groups
+# cD
+
+```
+
+```{r}
+rD <- rowData(sim.groups.0)
+exp(.7)
+h <-hist(rD$DEFacGroup1%>%log,20)
+plot(h$mids, 1 + h$counts,log = 'y')
+# exp(h$)
+```
+
+```{r}
+
+###### Estimate BCV (mean variance plot)
+
+hist(
+    rnbinom(
+        10000,
+        mu = 10,
+        size = 100),
+    col = "grey50",
+    xlab = "Read Counts",
+    main = "Negative Binomial",
+    breaks = 100
+)
+
+
+
+# BiocInstaller::biocLite('')
+```
+
+
+
+
+```{r}
+
+#############################
+#### WTF is this ????
+#############################
+counts(sim.groups)[1]%>%class
+library(edgeR)
+# ?DGEList
+gp_vct <- colData(sim.groups)$Group
+dge <- DGEList(counts = counts(sim.groups) + 1
+               ,group = gp_vct 
+               
+                                # ,'Group')
+               )
+ct<-counts(sim.groups)
+dim(ct)
+# dge$sample
+# sim.groups
+length(gp_vct)
+# dge <- DGEList(
+#     counts = counts, 
+#     norm.factors = rep(1, length(counts[1,])), 
+#     group = group
+# )
+group_edgeR <- factor(gp_vct)
+design <- model.matrix(~ group_edgeR)
+dge <- estimateDisp(dge, design = design, trend.method = "none")
+
+
+```
+
+```{r}
+# params0
+```
+
+```{r}
+options(error = recover5)
+dge <- DGEList(counts = counts(sim.groups) 
+               ,group = gp_vct 
+               )
+# ?estimateDisp
+# sum(rowSums(dge$counts)<5)
+
+dge <- estimateDisp(dge, design = design, trend.method = "none"
+                    ,min.row.sum = 0)
+```
+
+```{r}
+###
+# sigDE <- names(pVals)[pVals < 0.05]
+compileTruth <- function(sim.groups
+             ,thres = 0.001
+  ){
+  
+  d <- rowData(sim.groups)
+  plot(d$DEFacGroup1,d$DEFacGroup2)
+  plot(d$DEFacGroup1, d$OutlierFactor)
+  de <<- list()
+  de$A <<- log( d$DEFacGroup2/d$DEFacGroup1 )
+  de$abs.A <<- abs(de$A)
+  de$M <<- log(d$GeneMean)
+  # h = hist(log(de))
+  # plot(h$mids,h$counts+1,log = 'y')
+  extreme <-d$OutlierFactor!=1
+    
+  GroundTruth = list(
+    DE = d$Gene[de$abs.A >= thres    ]
+    ,notDE = d$Gene[de$abs.A < thres ]
+    # DE = d$Gene[abs.de >= thres | extreme]
+    # ,notDE = d$Gene[abs.de < thres &! extreme]
+  )
+  sapply(GroundTruth,length)
+  h<-hist(de$A)
+  plot(h$mids,log(h$counts+1))
+  return(GroundTruth)
+}
+# rowData(sim.groups.0)$DE<-
+GroundTruth <-compileTruth(sim.groups.0)
+de
+```
+
+```{r stat_helper}
+
+
+
+{
+  pVals0<-res$table$PValue
+  names(pVals0) <- rownames(dge$counts)
+  pVals <- p.adjust(pVals0,method = 'BH')
+  plot(DE_Quality_AUC(pVals0));plot(DE_Quality_AUC(pVals),col = 2,add = T)
+  plot(DE_Quality_PRBE(pVals0));plot(DE_Quality_PRBE(pVals),col = 2,add = T)
+}
+
+```
+
+
+```{r}
+# de
+plot(de$A, res$table$logFC
+     ,col = (d$OutlierFactor>1) + 1)
+
+# res$table
+strange<-(de$A==0 & res$table$logFC != 0)
+
+plot(de$A, res$table$logFC, col = strange + 1)
+
+plot(de$M,de$A,col=strange + 1)
+
+```
+
+
+```{r}
+# plot(,de$A,col=strange + 1)
+hist(d$GeneMean[strange])
+d[strange,]
+assays(sim.groups)%>%class
+assays(sim.groups) <- c(assays(sim.groups), list('x' = counts(sim.groups)))
+gp_vct <- cD$Group
+gp_fac <- factor(gp_vct)
+
+
+```
+
+
+
+
+```{r}
+# plot(res$dispersion)
+
+# sim.groups.0
+sim.groups <- sim.groups.0[]
+plotPCA(sim.groups,
+        shape_by = "Group", colour_by = "Batch",
+        # shape_by = "Batch", colour_by = "Group",
+        exprs_values = "logCounts",
+        size_by = 'ExpLibSize'
+        
+        # exprs_values = "BatchGroupCellMeans"
+        # exprs_values = "logBatchGroupCellMeans"
+        )
+
+# sim.groups <- sim.groups.0[]
+# plotPCA(sim.groups,
+#         shape_by = "Group", colour_by = "Batch",
+#         # shape_by = "Batch", colour_by = "Group",
+#         exprs_values = "counts",
+#         size_by = 'ExpLibSize'
+#         # exprs_values = "BatchGroupCellMeans"
+#         # exprs_values = "logBatchGroupCellMeans"
+#         )
+
+idx <- !duplicated(colData(sim.groups.0)[c('Batch','Group')])
+sim.groups <- sim.groups.0[,idx]
+plotPCA(sim.groups,
+        shape_by = "Group", colour_by = "Batch",
+        # shape_by = "Batch", colour_by = "Group",
+        # exprs_values = "counts"
+        # exprs_values = "BatchGroupCellMeans"
+        exprs_values = "logBatchGroupCellMeans",
+        size_by = 'ExpLibSize'
+        
+        )
+colnames(colData(sim.groups))
+# ?plotPCA
+```
+
+
+
+```{r}
+
+##### Use all cells
+
+#### Priority for dispersion: tagwise > trended > common, see getDispersion()
+
+###### Select data
+# sim.groups <- sim.groups[,!duplicated(sim.groups.0$Group)]
+# idx <- !duplicated(colData(sim.groups.0)[c('Batch','Group')])
+sim.groups <- sim.groups.0
+gp_vct <- colData(sim.groups)$Group
+ASS = assays(sim.groups)
+
+#### Constuct Design matrix
+gp_vct <- colData(sim.groups)$Group
+gp_fac <- factor(gp_vct)
+design <- model.matrix(~ gp_fac)
+
+dge <- DGEList(
+  # counts = ASS$counts
+  counts = ASS$TrueCounts
+               ,group = gp_vct
+               # ,genes = rowData(sim.groups)$Gene
+               
+                                # ,'Group')
+               )
+
+dge <- calcNormFactors(dge,method = 'RLE')
+gp_fac <- factor(gp_vct)
+design <- model.matrix(~ gp_fac)
+
+dge <- estimateDisp(dge, design = design
+                    
+                    , trend.method = "none"
+                    # , trend.method ='locfit'
+                    ,min.row.sum = 0 #### Prevent dropping genes
+                    )
+# dge[['trended.dispersion']]
+```
+
+```{r}
+
+pred.DE<-list()
+for (disp.name in c('common.dispersion','trended.dispersion','tagwise.dispersion'))
+{
+  fit <- glmFit(dge, design,dispersion = dge[[disp.name]])
+  res <- glmLRT(fit)
+  plot_panel(dge,fit,res)
+  cor(res$table$LR,de$abs.A,method='spearman')
+  plot(y=res$table$LR,x=de$abs.A,cex = (de$M))
+  plot(y=res$table$LR,x=de$abs.A,cex = to_norm(de$M)+1)
+  isDE<-decideTestsDGE(res) ### FDR cutoff of 0.05 by default
+  pred.DE[[disp.name]] = which(isDE!=0)
+  plot(de$M,de$A,col = 2 + isDE)
+  # plot(y=res$table$logFC,x=de$A)
+  # plot( (de$M+11)*de$abs.A,res$table$LR)
+  weighted.corr<-wCorr::weightedCorr((de$M+11)*de$abs.A,res$table$LR,method='spearman')
+  title(main = weighted.corr)
+  print(weighted.corr)
+  # boot::corr(res$table$logFC,de$abs.A,w = de$M)
+}
+#install.packages('wCorr',lib=llib)
+```
+
+```{r}
+
+for (disp.name in c('common.dispersion','trended.dispersion','tagwise.dispersion'))
+{
+  fit <- glmFit(dge, design,dispersion = dge[[disp.name]])
+  res <- glmLRT(fit)
+  plot_panel(dge,fit,res)
+  cor(res$table$LR,de$abs.A,method='spearman')
+  plot(y=res$table$LR,x=de$abs.A)
+  # cor(res$table$logFC,de$abs.A,method='spearman')
+
+}
+
+```
+
+
+
+##### Use PRBE to becnhmark the three dispersion information.
+
+```{r}
+###### Select data
+# sim.groups <- sim.groups[,!duplicated(sim.groups.0$Group)]
+idx <- !duplicated(colData(sim.groups.0)[c('Batch','Group')])
+sim.groups <- sim.groups.0[,idx]
+ASS = assays(sim.groups)
+
+#### Constuct Design matrix
+gp_vct <- colData(sim.groups)$Group
+gp_fac <- factor(gp_vct)
+design <- model.matrix(~ gp_fac)
+
+
+dge <- DGEList(counts = ASS$BatchGroupCellMeans
+               ,group = gp_vct
+               # ,genes = rowData(sim.groups)$Gene
+               
+                                # ,'Group')
+               )
+dge <- calcNormFactors(dge,method='RLE')
+# dge$samples
+
+##### Esitmation based on common dispersion
+# dge <- estimateGLMCommonDisp(dge, design)
+# dge <- estimateGLMTrendedDisp(dge, design)
+# dge <- estimateGLMTagwiseDisp(dge, design)
+
+# dge <- estimateDisp(dge)
+dge <- estimateDisp(dge, design = design
+
+                    # , trend.method = "none"
+                    , trend.method ='locfit'
+                    ,tagwise = T
+                    ,min.row.sum = 0 #### Prevent dropping genes
+                    )
+# dge <- estimateGLMTagwiseDisp(dge, design)
+
+```
+
+```{r}
+
+pred.DE<-list()
+for (disp.name in c('common.dispersion','trended.dispersion','tagwise.dispersion'))
+{
+  fit <- glmFit(dge, design,dispersion = dge[[disp.name]])
+  res <- glmLRT(fit)
+  plot_panel(dge,fit,res)
+  cor(res$table$LR,de$abs.A,method='spearman')
+  plot(y=res$table$LR,x=de$abs.A,cex = (de$M))
+  plot(y=res$table$LR,x=de$abs.A,cex = to_norm(de$M)+1)
+  isDE<-decideTestsDGE(res) ### FDR cutoff of 0.05 by default
+  pred.DE[[disp.name]] = which(isDE!=0)
+  plot(de$M,de$A,col = 2 + isDE)
+  # plot(y=res$table$logFC,x=de$A)
+  # plot( (de$M+11)*de$abs.A,res$table$LR)
+  weighted.corr<-wCorr::weightedCorr((de$M+11)*de$abs.A,res$table$LR,method='spearman')
+  title(main = weighted.corr)
+  print(weighted.corr)
+  # boot::corr(res$table$logFC,de$abs.A,w = de$M)
+  
+}
+  to_norm <- function(x){(x-mean(x))/sd(x)}
+
+```
+
+
+#### Dispersion in differential expression
+
+The likelihood ratio indicates how likely the 
+
+Because genes with lower average CPM tends to express more dispersion, it tends to be associated with a low confidence in LR-test. However, multiple schemes for estimating dispersion exists. If the dispersion is assumed constant across all genes (the "common" scheme), then there will be less power in separating biological signal from technical noise, causing more DE to be called during the LR-test. 
+
+However this cause problem to constructing the ground truth set: how to derive the set of true DE genes from the simulation parameters? The estimated fold-change is produced from fitting the glm and correlates very well with the theoretical fold-change, but does not tell anything about the quality of the LR-test. 
+
+We are still struggling to find a good way to specify the ground truth, but the observation is that as estimation for dispersion becomes more specific, the LR-test becomes increasingly conservative.
+
+Simple division of the multiplicative factors gives a fold-change factor, which correlates very well with the prediction, regardless of the dispersion used in LR-test.
+
+The glmFIT would give the 
+
+
+
+```{r}
+# BiocInstaller::biocLite("splatter", lib = llib,build_vignettes=TRUE)
+# llib
+# hist(ASS$CellMeans%>%log)
+hist(ASS$BCV)
+
+# ?glmLRT
+rD<-rowData(sim.groups)
+rD%>%names
+
+plot(de$A,fit$coefficients[,2])
+vennset <- systemPipeR::overLapper(pred.DE,type = 'vennsets')
+systemPipeR::vennPlot(vennset, mymain = "DE prediction at FDR=0.05")
+# title(main = "DE prediction at FDR=0.05")
+# library(systemPipeR)
+# VennDiagram::venn.diagram(vennset)
+# VennDiagram::draw.triple.venn(vennpred.DE)
+# ?VennDiagram
+  # ?vennPlot
+# olBarplot(vennset)
+
+```
+
+```{r}
+# params1
+```
+
+```{r}
+# rD$DEFacGroup2/rD$DEFacGroup1
+
+isDE<-decideTests(res)
+
+plot(de$M,fit$coefficients[,1],col = 2 + isDE)
+
+plot(de$M,de$A,col = 2 + isDE)
+xs = seq(-10,5,length.out = 100)
+lines(xs ,2/(xs+11))
+
+plot(rD$GeneMean ,de$M,log = 'x')
+# ASS$
+
+# exp(1.986e-17)
+# lines(xs,2/xs)
+# summ
+# de$M
+cD = colData(sim.groups.0)
+hist(cD$ExpLibSize%>%log,10)
+# isDE%>%min
+plot(de$M*de$abs.A,res$table$LR,col = 2 + isDE)
+# plot(rD$GeneMean,log = 'y')
+#
+olap = list()
+olap$onlyA = 11
+olap$onlyB = 1
+olap$inAll = 6
+?systemPipeR::vennPlot
+# vennPlot(counts, setlabels = c(l1, l2), mysub = sub, mymain = main)
+DiffBind:::pv.venn2
+# DiffBind::ve
+systemPipeR::vennPlot(unlist(olap))
+# getAnywhere(vennPlot)
+# counts
+DiffBind:::pv.plotVenn
+DiffBind::dba.plotVenn
+```
+
+```{r}
+
+
+# PRBE
+plot_panel(dge,fit,res)
+```
+
+```{r}
+d <- DE_Quality_PRBE(pVals)
+# d
+d
+slot(d,)#
+slotNames(d)
+slot(d,'y.values')
+# ?performance
+# GroundTruth$notDE %>%length
+```
+```{r}
+#### The gene lengths are sampled from a log-normal distribution and is hence useless
+sim.groups<-addGeneLengths(sim.groups)
+# sim.groups
+# rD = rowData(sim.groups)
+# XS = rD$Length
+# YS = rowSums(ASS$TrueCounts )
+# plot(XS,YS,log = 'xy')
+
+####### Compare different library normlisation methods
+dge <- calcNormFactors(dge,method = 'TMM')
+XS <- dge$samples$norm.factors
+dge <- calcNormFactors(dge,method = 'RLE')
+YS <- dge$samples$norm.factors
+plot(XS,YS);abline(0,1,col = 2)
+```
+
+```{r}
+# BiocInstaller::biocLite('zinbwave',lib = llib)
+# BiocInstaller::biocLite('BASiCS',lib = llib)
+
+```
+
+
+
+```{r}
+# sim.groups <- sim.groups[,!duplicated(sim.groups.0$Group)]
+idx <- !duplicated(colData(sim.groups.0)[c('Batch','Group')])
+sim.groups <- sim.groups.0[,idx]
+# ASS$BatchGroupCellMeans
+gp_vct <- colData(sim.groups)$Group
+bch_vct <- colData(sim.groups)$Batch
+ASS = assays(sim.groups)
+# ASS$
+dge <- DGEList(
+  counts = ASS$BatchGroupCellMeans + 1
+  # counts = log(ASS$BatchGroupCellMeans + 1)%>%round
+               ,group = gp_vct
+               ,genes = rowData(sim.groups)$Gene
+               # ,norm.factors = rep(1.5, dim(sim.groups)[2])
+               # ,norm.factors = runif(dim(sim.groups)[2],.5,1.5)
+               # length(ASS[,1])
+                                # ,'Group')
+               )
+# ?runif
+# dge <- calcNormFactors(dge,method = 'TMM')
+dge <- calcNormFactors(dge,method = 'TMM')
+
+# dge <- calcNormFactors(dge,method='RLE')
+
+gp_fac <- factor(gp_vct)
+bch_fac <- factor(bch_vct)
+# design <- model.matrix(~ gp_fac + bch_fac)
+design <- model.matrix(~ gp_fac )
+rownames(design)<-colnames(dge)
+design
+
+# # estimateGLMDisp
+dge <- estimateGLMCommonDisp(dge, design  = design)
+dge <- estimateGLMTrendedDisp(dge, design = design)
+# dge <- estimateGLMTrendedDisp(dge, design = design
+                              # ,method = "bin.loess"
+                              # , min.n=25, df=3
+                              # ,method = 'spline'
+                              # )
+dge <- estimateGLMTagwiseDisp(dge, design = design)
+# dge$prior.df
+?estimateGLMTrendedDisp
+# dge$common.dispersion
+# ?estimateGLMTagwiseDisp
+plotBCV(dge,log = 'y')
+```
+
+
+
+```{r}
+# ?estimateGLMTrendedDisp
+# dge <- estimateCommonDisp(dge, design = design)
+# dge <- estimateTrendedDisp(dge, design = design)
+# dge <- estimateTagwiseDisp(dge, design = design)
+
+# estimateTrendedDisp(y = )
+# estimateTrendedDisp
+# dge <- estimateDisp(dge, design, robust=TRUE)
+
+# dge <- estimateDisp(dge, design = design
+#                     ,robust=TRUE
+#                     # , trend.method = "none"
+#                     , trend.method ='locfit'
+#                     ,min.row.sum = 5 #### Prevent dropping genes
+#                     )
+plotBCV(dge,log = 'y')
+fit <- glmFit(dge, design)
+res <- glmLRT(fit)
+# ?glmLRT
+# ?glmFit
+# res$table$PValue <- res$table$PValue/10
+# dge$samples
+# res <- exactTest(dge)
+{
+  
+  par(mfrow = c(2,2),omi = c(.1,.1,.1,.1),oma = c(.1,.1,.1,.1))
+  diagnose(res)
+  # res$table$PValue
+  diag.volcano(res,de)
+  plot(res$table$logCPM,res$table$logFC)
+  plotBCV(dge,log = 'y')
+}
+
+
+{
+  plot(dge$AveLogCPM,dge$tagwise.dispersion ,log ='y');points(dge$AveLogCPM,dge$trended.dispersion ,col=2)
+  # plot(dge$AveLogCPM,dge$trended.dispersion,log ='y');
+  # plot(dge$AveLogCPM,dge$tagwise.dispersion,log ='y');
+  # points(dge$AveLogCPM,dge$common.dispersion ,col=2)
+  # points(dge$AveLogCPM,dge$trended.dispersion ,col=2)
+  # plot(dge$trended.dispersion,dge$tagwise.dispersion,log = 'xy')
+}
+plot(res$table$LR)
+# dge <- estimateGLMRobustDisp(dge,design)
+# plotBCV(dge,log = 'y')
+plotBCV(dge)
+
+# res$samples
+# design
+# idx dge$AveLogCPM>11.5
+
+plot(dge$trended.dispersion,dge$tagwise.dispersion)
+
+# sessionInfo()
+# length(design)
+# design
+# dge$
+# dgeTest$table
+```
+
+#### Median is very stable across a group of cells, and causes dispersion to vanish.
+
+How to normalise for dropout?
+
+
+```{r}
+rowData(sim.groups)
+
+```
+
+```{r}
+fit <- glmQLFit(dge, design, robust=TRUE)
+plotQLDisp(fit)
+# plotDispEsts(dge)
+# plotBCV(fit)
+plotMD(res)
+vct <- decideTests(res)
+pVals0 <-res$table$PValue
+# sum(res$table$PValue == 0)
+pVals<-p.adjust(sort(pVals0),method = 'BH')
+cols <- 1 + (vct[,1]==1);plot(sort(pVals), col = cols[order(pVals0)],cex = 0.25, ylim = c(0,0.05),xlim = c(0,200))
+res
+# res$
+# summary(decideTests(res))
+# res <- glmLRT(fit)
+
+{
+  par(mfrow = c(2,2),omi = c(.1,.1,.1,.1),oma = c(.1,.1,.1,.1))
+  diagnose(res)
+  # res$table$PValue
+  diag.volcano(res,de)
+  plot(res$table$logCPM,res$table$logFC)
+  plotBCV(dge,log = 'y')
+}
+
+dge$counts
+rownames(design)<-colnames(dge)
+# design
+# plotPCA(dge)
+# dge$trended.dispersion
+# dge$tagwise.dispersion
+```
+
+```{r}
+# sim.groups <- sim.groups[,!duplicated(sim.groups.0$Group)]
+idx <- !duplicated(colData(sim.groups.0)[c('Batch','Group')])
+sim.groups <- sim.groups.0[,idx]
+# ASS$BatchGroupCellMeans
+gp_vct <- colData(sim.groups)$Group
+ASS = assays(sim.groups)
+# ASS$
+dge <- DGEList(counts = ASS$BatchGroupCellMeans
+               ,group = gp_vct
+               # ,genes = rowData(sim.groups)$Gene
+               # ,norm.factors = rep(1.5, dim(sim.groups)[2])
+               # ,norm.factors = runif(dim(sim.groups)[2],.5,1.5)
+               # length(ASS[,1])
+                                # ,'Group')
+               )
+# ?runif
+# dge <- calcNormFactors(dge,method = 'TMM')
+# dge <- calcNormFactors(dge,method = 'TMM')
+
+# dge <- calcNormFactors(dge,method='RLE')
+
+gp_fac <- factor(gp_vct)
+design <- model.matrix(~ gp_fac)
+# estimateGLMDisp
+dge <- estimateGLMCommonDisp(dge, design)
+# dge <- estimateGLMTrendedDisp(dge, design)
+dge <- estimateGLMTagwiseDisp(dge, design)
+# dge <- estimateDisp(dge)
+# dge <- estimateDisp(dge, design = design
+#                     
+#                     , trend.method = "none"
+#                     # , trend.method ='locfit'
+#                     ,min.row.sum = 0 #### Prevent dropping genes
+#                     )
+
+fit <- glmFit(dge, design)
+res <- glmLRT(fit)
+# dge$common.dispersion
+# dge$tagwise.dispersion
+# dge$AveLogCPM
+dge$prior.df
+# res <- exactTest(dge)
+par(mfrow = c(2,2),omi = c(.1,.1,.1,.1),oma = c(.1,.1,.1,.1))
+diagnose(res)
+# res$table$PValue
+diag.volcano(res,de)
+plot(res$table$logCPM,res$table$logFC)
+dgeTest <- exactTest(dge)
+# dgeTest$table
+```
+
+#### Stage Conclusion:
+Single cell-based estimation is a lot more sensitive to 
+
+DE-differentially expressed
+
+I visualised the prediction for DE by 
+
+1. Correlation plot: theoretical-logFC against fitted-logFC
+2. Volcano plot of fitted-LR(likelihood ratio) against fitted-logFC
+
+Definition of LR?
+
+From correlation plot we identified false positives that exhibited spurious logFC with a theoretical-logFC of 0 (colored red). This group is recapitulated in the volcano plot as having low LR.
+
+**Incorrect**:Side observation: single-cell result is less sensitive to FDR correction (BH usedd here), whereas simulated bulk is more prone, likely due to the fact that the signal from scRNA-seq is richer and hence more robust. It's also possible that the simulated bulk-RNA data has some statistical feature that prevented accurate estimation of P-value/likelihood ratio. However, I observed that normalising P-value by dividing it by exp(-logFC) restored the ROC curve.
+**Reason**: The median across cell group is taken -- value is too stable for any dispersion to be estimated!!!
+
+
+
+#### Further: 
+
+<!-- that corresponds to non-differentially expressed genes in the model. -->
+<!-- We identify  -->
+
+
+
+```{r library_size}
+calculateCPM(sim.groups)
+calculateCPM
+scater:::.get_all_sf_sets(sim.groups)
+# ?scater:::.get_all_sf_sets
+sim.groups.0<-scater::calculateQCMetrics(sim.groups.0)
+cD<-colData(sim.groups.0)
+# cD$pct_counts_top_50_features
+scater_gui(sim.groups.0)
+sim.groupscalcNormFactors(sim.groups)
+# sizeFactors(sim.groups)
+# sim.groups.0
+```
+
+
+```{r}
+
+
+plot_panel <- function(dge,fit,res)
+  {
+  # res$table
+  # topTags(res)
+  # hist(res$table$PValue)
+  par(mfrow = c(2,2)
+      # ,omi = c(.1,.1,.1,.1)
+      ,mai=c(0.5,0.5,0.2,0.1)
+      ,omi=c(0.2,0.0,0.5,0.)
+      ,oma = c(.1,.1,.1,.1)
+      ,mgp=c(1.5,0.4,0.1)
+      )
+  
+  plotMD(res,main = 'M-A plot')
+  
+  plotBCV(dge,log = 'y')
+  
+  #####  diagnose(res)
+  # pVals0 = pVals0.def
+  pVals0 <- res$table$PValue
+  names(pVals0) <- rownames(res$table)
+  pVals <- p.adjust(pVals0, method = "BH")
+  # plot(sort(pVals0),type = 'l');lines(sort(pVals),col = 2)
+  # plot(DE_Quality_AUC(pVals0));plot(DE_Quality_AUC(pVals),col = 2,add = T)
+  
+  
+  # plot(DE_Quality_PR(pVals0),xlim=c(0,1),ylim = c(.7,1));plot(DE_Quality_PR(pVals),col = 2,add = T)
+  # title(main = sprintf('PRBE=%.3f,AUC=%.3f',DE_Quality_PRBE(pVals), DE_Quality_AUC(pVals)))
+
+    plot(DE_Quality_ROC(pVals0),xlim=c(0,1),ylim = c(0,1));plot(DE_Quality_ROC(pVals),col = 2,add = T)
+  title(main = sprintf('PRBE=%.3f,AUC=%.3f',DE_Quality_PRBE(pVals), DE_Quality_AUC(pVals)))
+
+  diag.volcano(res,de)
+}
+
+diag.volcano<-function(res,de){
+  # par(mfrow=c(1,2))
+  # plot(res$table$logFC,res$table$LR)
+
+  strange<-(de$A==0 & res$table$logFC != 0)
+  # plot(de$A,res$table$logFC,col = strange+1)
+  plot(res$table$logFC,res$table$LR,col = strange + 1
+       , ylim = c(1,50)
+       # ,log = 'y'
+       )
+# ?p.adjust
+}
+
+diagnose <- function(res)
+  {
+
+  
+# idx = is.finite(log(res$table$PValue))
+# summary(res$table$LR[idx] / -log(res$table$PValue)[idx])
+# plot(res$table$LR[idx], - log(res$table$PValue)[idx])
+# XS = res$table$LR[idx] * .5
+# mod <- lm(-log(res$table$PValue)[idx]~XS)
+
+# mod%>%summary
+# mod$coefficients
+
+# res$table$PValue[!is.finite(log(res$table$PValue))]
+# %>%mean
+
+#### Normalise p-values by logFC
+pVals0.def <- res$table$PValue
+names(pVals0.def) <- rownames(res$table)
+# pVals0 = exp(-2*res$table$LR/abs(res$table$logFC))
+# res$table$LR/abs(res$table$logFC)
+
+# if('logFC'%in%names(res$table))
+if (!'LR' %in% names(res$table)){res$table$LR = -2 * log( res$table$PValue)}
+pVals0.fcnorm = exp(-2*res$table$LR/abs(res$table$logFC))
+names(pVals0.fcnorm) <- rownames(res$table)
+
+strange<-(de$A==0 & res$table$logFC != 0)
+# pVals0[strange] = 1
+
+# pVals <- p.adjust(pVals0, method = "fdr")
+# pVals
+# DE_Quality_AUC(pVals0)
+
+pVals0 = pVals0.def
+# names(pVals0) <- rownames(res$table)
+pVals <- p.adjust(pVals0, method = "BH")
+plot(sort(pVals0),type = 'l');lines(sort(pVals),col = 2)
+plot(DE_Quality_AUC(pVals0));plot(DE_Quality_AUC(pVals),col = 2,add = T)
+plot(DE_Quality_PRBE(pVals0));plot(DE_Quality_PRBE(pVals),col = 2,add = T)
+
+
+pVals0 <- pVals0.fcnorm
+pVals <- p.adjust(pVals0, method = "BH")
+plot(sort(pVals0),type = 'l',lty = 2);lines(sort(pVals),col = 2,lty = 2)
+plot(DE_Quality_AUC(pVals0));plot(DE_Quality_AUC(pVals),col = 2,add = T)
+plot(DE_Quality_PRBE(pVals0));plot(DE_Quality_PRBE(pVals),col = 2,add = T)
+
+
+# lines(pf$,col = 2)
+grid()
+
+
+# 
+# pVals0 <- res$table[,4]
+# names(pVals0) <- rownames(res$table)
+# pVals <- p.adjust(pVals0, method = "BH")
+# plot(sort(pVals0));lines(sort(pVals),col = 2)
+# # DE_Quality_AUC(pVals0)
+# 
+# pf0 <- DE_Quality_AUC(pVals0)
+# pf  <- DE_Quality_AUC(pVals)
+# plot(pf0);plot(pf ,col = 2,add = T)
+# # DE_Quality_AUC(pVals)
+# grid()
+# # pVals
+
+}
+
+diagnose(res)
+# GroundTruth
+```
+
+```{r}
+# params1
+```
+
+```{r data__simulation__dropout_use}
+
+use.DropOut = T
+params0 <- newSplatParams()
+params1 <- setParams(params0,
+                     nGenes=2000,
+                     batchCells = c(20, 20, 20, 20)*5,
+                     batch.facLoc = 0,batch.facScale = 0,
+                     group.prob = c(0.5, 0.5),
+                     ,dropout.present = use.DropOut
+                     ,dropout.mid=3
+                     )
+sim.groups.0<- splatSimulate(params1,method = "groups", verbose = FALSE)
+assays(sim.groups.0)$logCounts <- log(assays(sim.groups.0)$counts + 1)
+sim.groups.0
+sim.groups<-sim.groups.0
+
+sim.groups.0<-calc_BatchGroupCellMeans(sim.groups.0,expr_mat='TrueCounts')
+
+plotPCA(sim.groups,
+        # shape_by = "Group", colour_by = "Batch",
+        shape_by = "Batch", colour_by = "Group",
+        exprs_values = "logCounts")
+# library(scater)
+```
+
+```{r data__simulation__dropout}
+params0 <- newSplatParams()
+params1 <- setParams(params0,
+                     nGenes=2000,
+                     
+                     # batchCells = c(50, 50), group.prob = c(0.5, 0.5),
+                     batchCells = c(20, 20, 20, 20)*5,
+                     # batchCells = c(17, 20, 21, 24)*5,
+                     batch.facLoc = 0,batch.facScale = 0,
+                     # batch.facLoc = c(-0.5,1.0,0.5)
+                     group.prob = c(0.5, 0.5),
+                     ,dropout.present = T
+                     # ,mean.shape = 1
+                     # ,outlier.prob=0
+                     # ,dropout.mid  = 10,dropout.shape =-1
+                     # batch.facScale = 0.1
+                            # method = "groups", verbose = FALSE
+                     # ,out.prob = 0
+                     # ,bcv.df = 1
+                     # ,bcv.common = 0
+                     )
+params1
+params0
+sim.groups.0<- splatSimulate(params1,method = "groups", verbose = FALSE)
+assays(sim.groups.0)$logCounts <- log(assays(sim.groups.0)$counts + 1)
+assays(sim.groups.0)$counts_CPM<- calculateCPM(sim.groups.0)
+
+sim.groups.0
+sim.groups<-sim.groups.0
+
+
+plotPCA(sim.groups,
+        # shape_by = "Group", colour_by = "Batch",
+        shape_by = "Batch", colour_by = "Group",
+        exprs_values = "logCounts")
+
+plotPCA(sim.groups,
+        # shape_by = "Group", colour_by = "Batch",
+        shape_by = "Batch", colour_by = "Group",
+        exprs_values = "counts")
+
+plotPCA(sim.groups,
+        # shape_by = "Group", colour_by = "Batch",
+        shape_by = "Batch", colour_by = "Group",
+        exprs_values = "counts_CPM")
+
+# library(scater)
+```
+
+
+```{r}
+# plot(de$M,de$A)
+# calculateCPM
+assays(sim.groups.0)$CPMcounts = calculateCPM(sim.groups.0)
+ASS= assays(sim.groups.0)
+M3Drop::M3DropDropoutModels(ASS$TrueCounts)
+M3Drop::M3DropDropoutModels(ASS$counts)
+M3Drop::M3DropDropoutModels(ASS$CPMcounts)
+# M3Drop::M3DropDropoutModels(ASS$BatchGroupCellMeans)
+```
+
+```{r}
+M3Drop::M3DropDifferentialExpression(ASS$CPMcounts)
+M3Drop::M3DropExpressionHeatmap(rowData(sim.groups)$Gene,ASS$CPMcounts)
+```
+
+#### Normalisation by library size is crucial
+
+```{r}
+ASS <-assays(sim.groups.0)
+
+try(M3Drop::M3DropExpressionHeatmap(pred.DE$tagwise.dispersion,ASS$TrueCounts,cell_labels = cD$Group))
+
+####  
+# par(mar=c(1,1,1,1))
+# par()$mar
+# dev.off()
+graphics.off()
+legend()
+library(M3Drop)
+heat_out
+try({M3Drop::M3DropExpressionHeatmap(pred.DE$tagwise.dispersion,ASS$counts_CPM,cell_labels = cD$Group)})
+
+try(M3Drop::M3DropExpressionHeatmap(pred.DE$tagwise.dispersion,ASS$TrueCounts,cell_labels = cD$Group))
+try(M3Drop::M3DropExpressionHeatmap(genes = which(de$abs.A>0.1)[1:200],ASS$TrueCounts,cell_labels = cD$Group))
+
+```
+
+```{r}
+example_sceset <- sim.groups.0
+## Plot QC
+plotQC(example_sceset, type = "highest-expression", exprs_values = "counts")
+plotFeatureData(example_sceset, aes(x = n_cells_exprs, y = pct_total_counts))
+plotPhenoData(example_sceset, aes(x = total_counts, y = total_features,
+                                  colour = Gene1))
+plotQC(example_sceset, type = "exprs-freq-vs-mean")
+## Plot QC
+# plotQC(example_sceset, type = "highest-expression", exprs_values = "counts")
+
+```
+
+We will be conducting the analysis with three packages:
+
+1. "scater": General quality control. This package uses an assortment of statistical models to visualise the variance within the samples.
+1. "edgeR" : Inference of differential expressed genes using a negative binomial model. Importantly, the dispersion parameter is fitted to indicate the inherent variance of any gene, which greatly improve the reliability of the inference.
+1. "M3Drop": Investigating the dropout phenomena.
+
+```{r}
+ASS= assays(sim.groups.0)
+try({M3Drop::M3DropExpressionHeatmap(pred.DE$common.dispersion,ASS$counts_CPM,cell_labels = cD$Group)})
+
+# M3Drop::M3DropExpressionHeatmap
+# fix('M3Drop::M3DropExpressionHeatmap')
+# namespace:M3Drop
+# try(M3Drop::M3DropExpressionHeatmap(.dispersion,ASS$TrueCounts,cell_labels = cD$Group))
+# M3Drop:::bg__expression_heatmap
+# heatmap.2(ASS$TrueCounts[pred.DE$tagwise.dispersion,]%>%log1p)
+```
+```{r}
+try(M3Drop::M3DropExpressionHeatmap(pred.DE$common.dispersion,ASS$TrueCounts))
+```
+
+```{r}
+plot(res$table$logCPM,res$table$logFC)
+```
+
+### General question answering, experimental consideration of RNA-seq 
+single cell RNA sequencing (scRNA-Seq) is becoming an increasingly popular technique due to advances in experimental techniques in terms of tagging cells before PCR-amplification so that its mRNA can be uniquely identified after sequenced. Importantly, microfluidic-based tagging has greatly improved the throughput of the tagging so that larger cellular population is now amenable to analysis.
+
+scRNA-Seq is analogous to doing multiple runs of bulk RNA-Seq - that is, in both experiments, the captured RNA are reverse-transcribed (RT), amplified, pooled and seqeunced. The difference is that the tagging in bulk RNA-Seq is less vigorous and samples are usually tagged according to the tissue and the condition from which it is acquired. Whereas in scRNA-Seq, the tagging is down to the cellular level and each cell can be uniquely identified. Recently, the introduction of unique molecular identifier (UMI) seeks an even more rigorous tagging where each transcript is assigned a barcode during RT for later identifictaion.
+
+Various protocols exists for scRNA-Seq and varies in their throughput and availablity of external standards for normalisation, including spike-ins and UMI. The microfluidic-based protocol utilises droplet to isolate cell from each other so that they can be uniquely labeled. The captured mRNA in each droplet then undergoes RT and forms "single-cell transcriptome attached to micro-particles" (STAMP), which are then pooled and undergo bulk PCR amplification. The microwell based protocol is different in it sepearates cell by pipetting or laser capturing. It is important that both protocol carried out RT at single-cell level, which potentially caused the dropout problem. 
+After obtaining DNA reads using next-generation-sequencing (NGS), the reads are mapped back to a set of features using some reference (e.g: genome, transcriptome) and identified by their barcodes. It was noted some reads may map to pesudogenes due to sequencing error that could be incorrectly attributed as  (@Andrews2016)
+
+
+Advantage of bulk RNA-Seq:
+
+1. Less computationally intensive
+1. Signal is more robust and subject to less dispersion
+1. Easy experimental setup
+
+Disadvantage of bulk RNA-Seq:
+
+1. The data is only an ensemble average and limited the resolution.
+1. Samples can be heterogeneous which introduces confounders that interfere with the interested biological signal.
+
+One of the biggest application of bulk RNA-Seq is detecting differential expression between physiological conditions, which can be induced by altering transcription factor, pathogen presenting, application of drug, etc. More exotic questions like gene imprinting is also within the capability, in which case the transcription was altered according to the direction of breeding. In summary, as long as the transcription or the change of transcription is homogeneous within the bulk, then bulk RNA-Seq will give enough information to validate any proposed hypothesis.
+
+Advantage of scRNA-Seq:
+
+1. More detailed data that permits exploration down to the cellular level. This includes 
+1. Larger sample size permits easier estimation for dispersion parameter
+
+
+Disadvantages:
+
+1. Computationally intensive
+1. Subject to alleic dropout, a PCR artifact that greatly increased technical noise
+1. Library size is more diversed and harder to model, as a result of both increased technical variability and inherent diverity of cell sizes. This could couple to cell lineage and cell cycle.
+1. The signal is richer and noiser, which means more sophiscated models are required to remove confounders, as well as recovering a robust biological signal.
+
+scRNA-Seq is best unique in answering questions that requires resolution at cellular level that could not be achieved easily by physical isolation. These include cell cycle, cell differentiation and tissue development, stochastic nature of gene expression. Theoretically, scRNA-Seq is capable of answering any question answerable by RNA-Seq, albeit at a higher cost and complexity.
+
+Because of the relative recentness of scRNA-Seq, its potential is still being actively investigated. One of its fruitful application is visualising cell differentiation as trajectories in the transcription profile, which proves to be difficult to model given the highly noise nature of the data. It also allowed delineation of tumour heterogeneity, where neoplastic, non-neoplastic and immune cells can be distingushed from each other to allow better biomarker to be devised (@Muller2017). It remains unclear how to devise meaningful biological hypotheses at a suitable granularity that can be effectively tested with scRNA-Seq, since most of the hypotheses will be micro-based and does not easily relate to higher hierarchy like tissue/organ level.
+
+Allelic dropout refers to the phenomena that a feature shows zero count whereas the underlying true count is non-zero in the original mRNA extraction. In other words, the assumption that read-count of this feature follows a Poisson/negative-binomial distribution is violated, and instances with zero counts are greatly enriched. One of the explanation is the probability of RT failure, a Michalie-Menten process, is greatly increased for mRNA count below a certain threshold (@Andrews2016). Nevertheless, how much does this model supersede the negative-binomial model awaits examination. The increased RT failure rate is also reminiscent of the fact that scRNA-Seq typically starts with a smaller amount of mRNA extraction (appx. 10pg) as compared to bulk RNA-Seq (appx. 100ng). 
+
+
+
+One of the consideration is the noise introduced 
+
+### Addressing the DE 
+
+### Start with the easiest setup with no batch effect, and evaluate
+
+## Plan: Plotting ROC/PR curve to validate the efficacy of algorithm
