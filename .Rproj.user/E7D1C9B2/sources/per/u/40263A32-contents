@@ -1,0 +1,26 @@
+'%f%' <- function(x,f) { do.call(what = f,
+                                 args = list(x)) }
+source('util_copynumber.R')
+
+###### Define proportion of loss/duplication
+p_loss = 0.25
+p_norm = 0.5
+p_dup  = 0.25
+p_vct = c(p_loss,p_norm,p_dup)
+
+stopifnot(p_loss + p_norm + p_dup  == 1)
+
+##### Define average length of each state.
+L_loss = 20E4
+L_norm = 60E4
+L_dup  = 20E4
+L_vct = c(L_loss, L_norm, L_dup)
+
+source('util_copynumber.R')
+L_chromosome = 200E6
+portion = .1
+probeidx = seq(1,L_chromosome * portion, length.out = (30E3 * portion) %f% floor) %f% floor
+probeidx
+# system.time({
+  cpnum_act = assign_copynumber(probeidx, p_vct, L_vct, guess = 1.0)
+# })

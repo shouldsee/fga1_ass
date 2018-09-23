@@ -1,0 +1,93 @@
+---
+title: "tf_prac"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+
+.libPaths(c('/local/data/public/RLib'),.libPaths())
+library('rgl')
+library('biomaRt')
+library('Rcade')
+```
+
+
+
+```{r}
+DIR <- file.path(system.file("extdata", package="Rcade"), "STAT1")
+DIR
+
+DE <- read.csv(file.path( DIR, "DE.csv"))
+DElookup <- list(GeneID="ENSG", logFC="logFC", B="B","Genes.Location","Symbol")
+```
+
+
+```{r}
+dir( DIR, pattern = ".bam$")
+targets <- read.csv(file.path( DIR, "targets.csv"), as.is = TRUE)
+targets
+
+anno <- read.csv(file.path( DIR, "anno.csv"))
+anno <- anno[order(anno$chromosome_name),]
+colnames(anno) <- c("ENSG","chr","start","end","str")
+
+
+#### Pay attention to strandness!!
+ChIPannoZones <- defineBins(anno, zone=c(-1500, 1500), geneID="ENSG")
+anno
+# targets
+```
+
+
+```{r}
+.libPaths( c( '/local/data/public/RLib', .libPaths()))
+DE.prior = 0.01
+prior.mode = "keepChIP"
+prior = c("D|C" = 0.05, "D|notC" = 0.005)
+
+prior %>% is
+
+
+Rcade <- RcadeAnalysis(DE, ChIPannoZones, annoZoneGeneidName="ENSG", ChIPtargets=targets, ChIPfileDir = DIR, DE.prior=DE.prior, prior.mode=prior.mode, prior=prior,DElookup=DElookup)
+
+
+Rcade
+DE
+# DE.prior
+# prior
+```
+```{r}
+?RcadeAnalysis
+```
+
+```{r}
+xDE <- getDE(Rcade)
+xChIP <- getChIP(Rcade)
+xRcade <- getRcade(Rcade)
+
+# xDE
+plotPCA(Rcade)
+plotMM(Rcade)
+# (Rcade)
+```
+```{r}
+library(rgl)
+# plotBBB(Rcade)
+plotBB(Rcade)
+# Rcade[1]
+# ?plotBBB
+
+
+exportRcade(Rcade, directory="RcadeOutput",cutoffArg=2000)
+exportRcade(Rcade, directory="RcadeOutput", cutoffMode="top", cutoffArg = 1000, justGeneID=FALSE,removeDuplicates="beforeCutoff")
+# DElookup
+?Rcade
+# Rcade$counts
+```
+
+
+```{r}
+ChIPannoZones[10,]
+```

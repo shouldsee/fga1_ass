@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1509536654546.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "1165|16|1171|0|\n1184|47|1186|8|\n1232|46|1237|9|\n1288|15|1301|0|\n1303|16|1338|0|\n1366|51|1367|42|\n1368|51|1374|0|\n1375|51|1376|44|\n1380|51|1381|44|\n1385|51|1386|44|\n1395|51|1396|44|\n1397|51|1400|0|\n1401|51|1402|44|\n1403|51|1408|0|\n1409|51|1410|45|\n1411|51|1414|0|\n1423|32|1434|0|\n1440|33|1501|0|\n1451|98|1489|34|\n1484|30|1486|2|\n1491|29|1493|0|\n1495|49|1500|0|\n1518|15|1520|0|\n1522|3|1534|0|\n1535|15|1538|0|\n1546|21|1558|0|\n",
+    "hash" : "2418253517",
+    "id" : "A4D7BC23",
+    "lastKnownWriteTime" : 1510357954,
+    "last_content_update" : 1510357995736,
+    "path" : "/local/data/public/fg368/functional_genomics/copynumber.Rmd",
+    "project_path" : "copynumber.Rmd",
+    "properties" : {
+        "cursorPosition" : "331,21",
+        "last_setup_crc32" : "",
+        "scrollLine" : "0"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

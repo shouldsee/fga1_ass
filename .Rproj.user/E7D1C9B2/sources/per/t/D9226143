@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1509988252385.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "4228749091",
+    "id" : "D9226143",
+    "lastKnownWriteTime" : 1509194927,
+    "last_content_update" : 1509194927,
+    "path" : "~/intro/plotter.R",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "12,34",
+        "scrollLine" : "0"
+    },
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

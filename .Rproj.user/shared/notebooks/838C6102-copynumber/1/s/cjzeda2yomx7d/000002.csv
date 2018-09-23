@@ -1,0 +1,3 @@
+"0","load('model')"
+"0","error.name = ""mean_absolute_error"""
+"0","ref_error = mean(abs(mdl))"

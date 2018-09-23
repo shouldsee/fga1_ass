@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1509987535380.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2033879760",
+    "id" : "F4E76111",
+    "lastKnownWriteTime" : 1510358003,
+    "last_content_update" : 1510358003197,
+    "path" : "/local/data/public/fg368/functional_genomics/util_copynumber.R",
+    "project_path" : "util_copynumber.R",
+    "properties" : {
+        "cursorPosition" : "214,6",
+        "scrollLine" : "0"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

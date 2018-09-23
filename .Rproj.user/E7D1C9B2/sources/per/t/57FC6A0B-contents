@@ -1,0 +1,662 @@
+---
+title: "Preface"
+language:
+  label:
+    fig: "fig"
+    # tab: "TABLE "
+output:
+  pdf_document:
+    toc: true
+    number_sections: true
+    fig_width: 6
+    fig_height: 5
+    fig_caption: true
+---
+
+
+```{r setup, include=FALSE, purl=FALSE}
+knitr::opts_chunk$set(echo = F,#root.dir='rpc2017/a1/'
+                      fig.pos = 'H',
+                      cache=TRUE,
+                      eval.after = c('fig.cap','code')
+                      # ref.label = 
+)
+
+debug = F
+```
+
+# What is this?
+
+This document is the work of [Feng Geng](http://newflaw.com), completed as an assignment for the Scientific Programming module as part of MPhil Computational Biology at DAMTP. 
+
+
+# Results:
+## Analysing Words:
+### Q: How many unique words are there (ignoring cases)? 
+```{r word1, echo=F, inclue = T}
+
+#### Define utility function
+'%f%' <- function(x,f) { do.call(what = f,
+                                 args = list(x)) }
+
+#### Read data from file
+f = file('rpc2017/a1/usr-share-dict-words','r')
+words  <-  readLines(f)
+close(f)
+
+#### Convert to uppercase and count unique number
+words <- toupper(words)
+words <- unique(words)
+sprintf('A: %d', length(words))%f%cat;
+```
+
+### Q: How many words contain an apostrophe(')?
+```{r word2, echo=F}
+buf <- c()
+match_idx <- grep('\'',words)
+buf <- c(buf,sprintf('A: %d ', length(match_idx)))
+
+######### Print hits
+hlen = 10
+df = data.frame( words[match_idx])
+caption = sprintf('Showing best %d hits below:',hlen)
+knitr::kable( 
+  head(df,hlen),
+  booktabs = TRUE,
+  caption = caption
+)
+words <- words[-match_idx]
+buf <- c(buf,sprintf('\n%d words left after filtering', length(words)))
+buf%f%cat
+```
+
+### Q: How many words contain non-ASCII chars? Save the filtered words as 'database'.
+```{r word3, echo=F}
+buf <- c()
+match_idx <- grep('[^ -~]',words)
+buf <- c(buf,sprintf('A: %d ', length(match_idx)))
+
+######### Print hits
+hlen = 10
+df = data.frame( words[match_idx])
+caption = sprintf('Showing best %d hits below:',hlen)
+knitr::kable( 
+  head(df,hlen),
+  booktabs = TRUE,
+  caption = caption
+)
+
+
+
+words <- words[-match_idx]
+words_data <- words
+buf <- c(buf,sprintf('\n%d words left after filtering, saved to "words_data"', length(words)))
+buf%f%cat
+```
+
+
+### Q: Find all the words as the two related form XOG and XOGUE, for example CATALOG and CATALOGUE.
+```{r word4, echo=F}
+words_data <- sort(words_data)
+putative <- words_data[
+  endsWith(words_data, 'OG')
+  ]
+target <- vapply( putative
+                  , FUN = {function (x) paste0(x,'UE')}
+                  ,FUN.VALUE='char'
+                  ,USE.NAMES=T)
+XOGUE <- words_data[match(target,words_data)]
+XOG   <- putative 
+result <- data.frame(XOG,
+                     XOGUE,
+                     row.names = NULL) 
+colnames(result)<- c("XOG","XOGUE") 
+result <- result[complete.cases(result),]
+rownames(result) <- 1:nrow(result)
+sprintf('%d pairs of words were found to conform "XOG"->"XOGUE" projection', nrow(result))%f%cat
+# print(result,  row.names = T)
+
+######### Print hits
+hlen = 10
+df = result
+caption = sprintf('Showing best %d hits below:',hlen)
+knitr::kable( 
+  head(df,hlen),
+  booktabs = TRUE,
+  caption = caption,
+  align = 'l'
+)
+
+
+```
+
+### Q: Load scrabble scores for the alphabet from "scarabble.txt", store to "scores"
+
+```{r word5,echo=F }
+fname = 'rpc2017/a1/scrabble.txt'
+f = file(fname,'r')
+buf = f%f%readLines
+buf = strsplit(buf,' ')
+f%f%close
+buf = t(array(unlist(buf),dim = c(length(buf[[1]]),length(buf) )))
+buf <- buf[order(buf[,1]),]
+
+l = length(unique(buf[,1]))
+if (l != 26){
+  msg = paste0('[WARNING]: scrabble scores incomplete, expected 26, actual ',l)
+  warning(msg)
+}
+# data.frame( char = buf[,1], score = buf[,4]) %f%print
+scores <- buf[,ncol(buf)] %f% as.integer
+names(scores) <- buf[,1]
+# df <- data.frame(
+#   letter = names(scores),
+#   as.vector(scores))
+# sprintf("Showing first 10 entries:")%f%cat
+# print( head(data.frame(scores),10))
+######### Print hits
+hlen = 10
+df = data.frame(scores)
+caption = sprintf('Showing best %d hits below:',hlen)
+knitr::kable(
+  head(df,hlen),
+  booktabs = TRUE,
+  caption = caption,
+  align = 'l'
+
+)
+
+```
+
+
+### Q: Compute the scrabble score for each word in the database. Plot the distribution of scores. What is the highest-scoring word
+*(Summation of score is assumed)*
+
+```{r word6,echo = F}
+x = words_data
+scoreit = {function (x){
+                      sum(
+                          unlist(
+                            lapply( strsplit(x,''),
+                            FUN = {function(i) scores[i]}
+                            )
+                          )
+                      )
+                    }
+          }
+y <- sapply( x,
+                   FUN = scoreit,
+                  # FUN.VALUE='integer',
+                  USE.NAMES=T)
+dy <- density( y, bw = 0.6)
+# par(mar=c(3,3,3,3))
+plot( dy,
+      main='Distribution of scrabble scores')
+my = mean(y)
+abline( v = my, col=2 )
+text(my, median(dy$y),sprintf('mean=%.3f',my), col = 2)
+
+#### DEBUG stats
+if (debug){dy%f%print}
+
+cat(
+  "Highest score is achieved by:",
+  names(y)[idx<-which.max(y)],
+  ", Score:",
+  y[idx]
+)
+```
+
+### Find all words W where both W and its reverse complement are both in the database.
+```{r word7,}
+dict = rev(LETTERS)
+names(dict) <- LETTERS 
+
+rev_comp = function(x){
+  paste0(
+    rev(dict[unlist(strsplit(x,''))])
+  ,collapse = "")
+}
+idx = match(
+  sapply(words_data, FUN=rev_comp),
+  words_data
+)%f%na.omit
+
+rv_0 = words_data[idx]
+rv_1 = sapply( rv_0, FUN = rev_comp )
+# self_rv_idx = rv_0 == rv_1
+# self_rv = rv_0[self_rv_idx]
+# nonself_rv_0 = rv_0[ !self_rv_idx ]
+# nonself_rv_1 = rv_1[ !self_rv_idx ]
+
+res <- data.frame(
+  rv_0,
+  rv_1)
+res <-  apply(res, MARGIN = 1, FUN = sort)%f%t
+dix <- duplicated(res[,1])
+res <- res[!dix,]
+res <- res[ order(nchar(res[,1]), decreasing = T),]
+
+colnames(res) = c('smaller_word','larger_word')
+rownames(res) <- 1:nrow(res)
+# res <- res%f%as.data.frame.array
+sprintf('We found %d entries, out of which %d are reverse-complement to themselves , Showing longest 10 entries', nrow(res), sum(res[,1]==res[,2]),'\n') %f%cat
+
+# head(res,10) %f% print
+# print( head(data.frame(scores),10))
+######### Print hits
+hlen = 10
+df = res
+caption = sprintf('Showing best %d hits below:',hlen)
+knitr::kable(
+  head(df,hlen),
+  booktabs = TRUE,
+  caption = caption,
+  align = 'l'
+
+)
+# rev_comp('ABC')
+```
+
+### Q: Using "F A L U Y P L N I", how many words of four or more letters can you find that are in the database AND all contain the letter A?
+```{r word8,}
+count = function(lst){
+  sapply(lst, {function(x){
+    if (x[1]==-1){
+      0
+    }else{
+      length(x)
+    }
+    }} )
+}
+
+query_orig_str = 'LLFAUYPNI'
+min_len = 4
+database =  words_data
+special = c('A')
+search_perm <- function (query_orig_str = 'LLFAUYPNI',
+                         min_len = 4,
+                        database =  words_data,
+                        special  = c('A')
+                        ){
+query_orig = strsplit(query_orig_str,'')[[1]]
+query = query_orig%f%unique
+query_str = paste0(query,collapse = '')
+qcount = sapply( query, 
+        {function(subq)
+          {count(
+            gregexpr(subq, query_orig_str)
+            )}})
+
+# query = strsplit(query,'')[[1]]
+raw = sapply( query, 
+        {function(subq)
+          {count(
+            gregexpr(subq, database)
+            )}})
+if(debug){
+raw0 <- raw
+raw <- raw0
+}
+rownames(raw) = 1:nrow(raw)
+##### Filter rows with duplicated query letter.
+# raw <- raw0
+
+# print("44850" %in% (raw%f%rownames))
+# exidx = raw[,1] > 2 | apply(raw[,-1]>1 ,MARGIN = 1, any )
+exidx = apply(
+  sweep(raw,qcount,MARGIN=2,FUN={function(x,y) x>y}),
+  MARGIN=1,
+  FUN = any )
+raw <- raw[!exidx,]
+
+# print("44850" %in% (raw%f%rownames))
+inidx <- apply(raw, MARGIN = 1, sum) >= min_len 
+raw <- raw[inidx,]
+
+# print("44850" %in% (raw%f%rownames))
+exidx <- apply(
+  sweep(raw==0, query %in% special,
+       MARGIN = 2,
+       FUN = '&'),
+      MARGIN = 1,
+      FUN = any)
+raw <- raw[!exidx,]
+
+words_res = database[rownames(raw)%f%as.integer]
+words_score = apply( raw,MARGIN = 1, sum)
+odx = order(words_score,decreasing = T)
+output = data.frame(
+  words_res,
+  words_len = nchar(words_res),
+  words_score
+  )
+output <- output[odx,]
+}
+
+output <- search_perm()
+#### Check correctness
+if (nrow(output) != 5755)
+{
+  warning("[WARNING]:Number of result is different from the cached one")
+}
+
+
+sprintf('We found %d hits according to query \"%s\" in \"words_data\"", \n (Option: min_len=%d, special=%s). ', nrow(output), query_orig_str, min_len ,paste0(special,collapse = ','))%f%cat
+# sprintf('Showing best %d hits below:',hlen) %f% cat
+
+######### Print hits
+hlen = 20
+df = output
+caption = sprintf('Showing best %d hits below:',hlen)
+knitr::kable(
+  head(df,hlen),
+  booktabs = TRUE,
+  caption = caption,
+  align = 'l'
+)
+
+```
+
+## Examination Marking
+### Importing and Scoring:
+
+
+```{r exam1}
+#### Read data from "crib.dat"
+# f = file('rpc2017/a1/crib.dat','r')
+# words  <-  readLines(f)
+# close(f)
+
+setwd('rpc2017/a1/grading/')
+
+
+##### read correct answers into "ref"
+fname = "crib.dat"
+f = file( fname,'r')
+ref  <-  readLines(f)
+close(f)
+qnum <- length(ref)
+qlevel = unique(ref)%f%sort
+qdict <- 1:length(qlevel)
+names(qdict) <- qlevel
+
+sprintf("[DEBUG]:There are %d questions from file:%s",qnum,fname)%f%cat
+
+####### Loading grading scheme and transform it to a vector
+grade_crit <- read.table(file = 'grade.txt',header = T)
+grade_dict <- rep(0,101)
+for (i in 1:nrow(grade_crit)){
+  ROW <- grade_crit[i,]
+  MIN = ROW[[1]]
+  MAX = ROW[[2]]
+  grade = ROW[[3]]
+  grade_dict[ MIN:MAX + 1] <- grade  
+}
+grade_dict <- factor(grade_dict, labels = grade_crit$grade%f%levels) 
+graduate <- function(x){grade_dict[x+1]}
+
+##### Test 
+if ( any(!graduate(c(39,40,49,50,59,60,69,70)) == c('F','D','D','C','C','B','B','A')) ){
+  warning("[WARNING]:Cannot safely define \"graduate()\"")
+}
+
+##### Read results for each student
+buf = list()
+resp = list()
+for (fname in list.files(getwd())){
+  if ( startsWith(fname,'student') ){
+    
+  ##### 
+  idx = regmatches( fname,gregexpr("[0-9]+", fname))%f%as.integer
+  # fname%f%cat
+  # sprintf("Index is %d",idx)%f%cat
+
+  f = file(fname,'r')
+  ttbl <- read.table(f, header = T,stringsAsFactors = F)
+  close(f)
+  
+  score = sum(ref[ttbl$qn] == ttbl$response)
+  buf[[idx]] = list( student_idx = idx, 
+                     score = score, 
+                     qnum = nrow(ttbl)
+                     )
+  ttbl$response <- qdict[ttbl$response] 
+  resp[[idx]] = ttbl
+  }
+}
+
+df <- data.frame(matrix(unlist(buf), nrow=length(buf), byrow=T))
+colnames(df) <- names(buf[[1]])
+df$percent <- floor(df$score / df$qnum * 100)
+df$grade <- df$percent%f%graduate
+df$rank <- rank(-df$percent)
+df <- df[order(-df$score),]
+if (sd(df$qnum)!=0){
+  warning("Question answered is not homogeneous")
+}
+
+df <- subset(df,select = -c(qnum))
+hlen <- nrow(df)
+caption = sprintf('Result of %d students in this exam, sorted by percent score in descending order', nrow(df) )
+knitr::kable( 
+  head(df,hlen),
+  booktabs = TRUE,
+  caption = caption,
+  row.names = F
+  # align = 'l'
+)
+sprintf("Stats were calculated for the rounded percent score for %d students in the exam", nrow(df))%f%cat
+summary(df$percent)%f%print
+res_exam <- df
+
+```
+
+### Detecting cheating
+#### Naive approach
+We define cheat index between two students, as the number of questions with a same answer, divided by the product of overlapped questions.
+$$ 
+I_{cheat}^{(a,b)} = 
+  {\sum_{i}{\delta_{A_i^a,A_i^b} }
+  \over
+  {\sum_{i}{\delta_{Q_i^a,Q_i^b} } } 
+  }
+$$
+where $a,b$ denotes index of students, $A_i^a$ denotes answer to question i by student a, $Q_i^a$ denotes whether question i is answered by student a, $\delta_{x,y}$ defined as
+
+$$ 
+\delta_{x,y} = \left\{
+  \begin{array}{ll}
+            0 & x \neq y \\
+            1 & x = y
+  \end{array}
+\right.
+$$
+Specifically, if any of the $A_i^a,A_i^b$ is undefined, then $\delta_{A_i^a,A_i^b} = 0$.
+
+Normalisation against overlapped questions count is important, because students can give the same answer by chance even without cheating. However, the calculated cheat index appear to follow a normal distribution, without a significant outlier. (See Figure \ref{fig:exam_naive} )
+
+```{r exam_naive,fig.cap=" \\label{fig:exam_naive} Distribution of $I_{cheat}$"}
+idx_xy <- t(combn(1:nrow(res_exam),2))
+res_exam <- res_exam[order(res_exam$student_idx),]
+
+# df <- res_exam
+cindex <- function(sa,sb,df = resp){
+  sumA <- intersect(df[[sa]]$qn,df[[sb]]$qn) %f% length
+  sumB <- intersect(data.frame(t(df[[sa]]))
+            ,data.frame(t(df[[sb]]))
+              )%f% ncol
+  c(sumA,sumB)
+  }  
+
+overlap <- apply(idx_xy, MARGIN = 1, FUN = {function(x) 
+  cindex( x[1],x[2])
+}
+)%f%t
+I_cheat <- overlap[,2]/overlap[,1]
+hist(I_cheat,main = NULL);
+
+```
+
+
+#### Diagnostic approach
+To obtain a more solid result, we plotted the numerator of $I_{cheat}$ against its denominator, allowing for a careful examination of the relation between overlapped answers and overlapped questions. We then fitted this relation with linear regression $N_{answer} = N_{question} + \epsilon$, estimated the standard deviation of the resultant residual $\sigma(\epsilon)$. The estimated standard deviation is then used to normalise the residual distribution, and to calculate the corresponding P-value, indicating our confidence to reject the null hypothesis that the point is sampled from this distribution (Figure \ref{fig:exam_diag}).
+
+From a visual inspection, point 15 comparison is obviously an outlier to the other clustered points. The normalised stats can be found at Table \ref{tab:exam_diag}. We conclude student 2 and student 6 (graded A and B respectively) are highly likely to have cheated, giving identical answers to all 27 quesions that were allocated to both of them.
+
+We also detected other students sharing a large number of answers, but associated with less significant z-score and are subject to further discussion. In other words, we need to account for the fact that some questions are so easy that every student get it right, thus giving the same answer. The difficulty can be measured with Shannon entropy, and can be used to score the observed conincidence, instead of simple scoring by counting.
+
+
+**We refrain from a thorough treatment given the size limit of this report.**
+
+```{r exam_diag, fig.cap= cap}
+
+cap <- "\\label{fig:exam_diag} Diagnostic plots for finding the outlier/cheater"
+##### Calculate naive cheat index as 
+# sets()
+idx_xy <- t(combn(1:nrow(res_exam),2))
+res_exam <- res_exam[order(res_exam$student_idx),]
+
+# df <- res_exam
+cindex <- function(sa,sb,df = resp){
+  sumA <- intersect(df[[sa]]$qn,df[[sb]]$qn) %f% length
+  sumB <- intersect(data.frame(t(df[[sa]]))
+            ,data.frame(t(df[[sb]]))
+              )%f% ncol
+  c(sumA,sumB)
+  }  
+
+overlap <- apply(idx_xy, MARGIN = 1, FUN = {function(x) 
+  cindex( x[1],x[2])
+}
+)%f%t
+question_overlap <- overlap[,1]
+answer_overlap <- overlap[,2]
+x <- question_overlap
+y <- answer_overlap
+
+mdl <- lm(y~x)
+# lines(x,mdl$fitted.values)
+mdl$stdres <- rstandard(mdl)
+# mdl$stdres <- rstudent(mdl)
+
+
+###### Thresholding outliers
+# conf <-  0.9975
+conf <-  0.975
+?rstudent
+
+cap <- paste0(cap,
+sprintf("\\newline (Using %.3f %% confidence (2 tailed) as threshold)", (2 * conf - 1 )*100)
+              )
+zlim <- qnorm(conf)
+outliers <- which( abs(mdl$stdres) > zlim)
+
+par(mfrow=c(1,2))
+plot(x,y,
+     xlab = "Number of overlapped questions",
+     ylab = "Number of overlapped answers",
+     xlim = c(-1,35),
+     ylim = c(-1,35)
+    )
+
+text( x[outliers], y[outliers], outliers,adj = c(-.3,-.3))
+abline(mdl,col = 2)
+
+plot(mdl$stdres,ylab='standardised residual',
+     ylim = c(-6,6))
+abline(h = zlim, col=2)
+abline(h =-zlim, col=2)
+abline(h = 0,lty=2)
+
+text( outliers, mdl$stdres[outliers], outliers,adj = c(-.3,-.3))
+
+
+cheats<-data.frame(
+  stud_A = idx_xy[,1],
+  grad   = df$grade[idx_xy[,1]],
+  stud_B = idx_xy[,2],
+  grad   = df$grade[idx_xy[,2]],
+  ques_same = question_overlap,
+  ans_same = answer_overlap,
+  zscore = mdl$stdres,
+  Confidence_to_reject_NULL = 2 * pnorm(abs(mdl$stdres)) - 1
+)
+
+cheats <- cheats[order(-(cheats$zscore)),]  
+
+######### Print hits
+hlen = 10
+df <- cheats
+caption = sprintf('Showing best %d hits below:',hlen)
+knitr::kable( 
+  head(df,hlen),
+  booktabs = TRUE,
+  caption = paste0('\\label{tab:exam_diag}',caption)
+)
+
+
+```
+
+## Treatment to Chapter 10 from "Dynamical Models in Biology":
+
+**(TBC)**
+
+### Introducing Visualising tools
+
+### The spatially homogeneous state
+```{r DMB,}
+source('DMB.R')
+L=200
+pop = rep(0,L)
+pop[1:5] <-5
+rate <- rep( c(0.5,1.2),c( L/2, L/2)) %f% shuffle
+s0 <- list(    pop = pmax(0,pop),
+               rate = pmax(0,rate),
+               filter= c(d, 1-2*d, d),
+               nhis = 100
+               )
+s0$his <- do.call(rbind, rep(list(pop), s0$nhis))
+s0$L <- length(s0$pop)
+
+```
+
+```{r}
+# s1 <- kickoff(580,s0)
+s1 <- kickoff(580,s1)
+plot(
+  log1p(s1$rate),
+  log1p(s1$pop)
+)
+
+plot(
+  log1p(s1$pop))
+par(new=T)
+plot(log1p(s1$rate),type = 'l')
+
+```
+
+
+
+
+# Appendix:
+
+<!-- \VerbatimInput{index.R} -->
+
+## R-scripts used:
+```{r produce_script, echo = F,purl = FALSE,include=F}
+knitr:::knit_code$restore()
+knitr::purl('index.Rmd')
+fname <- 'index.R'
+
+##### Remove "knitr::" statements from source script
+buf <- paste0(readLines(fname), collapse ="\n")
+# pattern <-"\nknitr::(?s:.)+?\n\)\n"
+pattern <-"\nknitr::(?s:.)+?\n\\)\n"
+buf <- gsub(pattern,"",buf, perl = T)
+cat(buf,file = fname)
+```
+```{r display_script, code= readLines("index.R"), eval = F,echo = T,cache = FALSE,purl=FALSE}
+# Blank
+```
+

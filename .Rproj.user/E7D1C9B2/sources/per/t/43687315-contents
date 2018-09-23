@@ -1,0 +1,144 @@
+---
+title: "evidence_assembly"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source('utils.R')
+library(ggplot2)
+```
+
+```{r}
+# file.edit('utils.R')
+df<-read_blast_tab(filename = 'genomes/blastn/Q__Drosophilamelanogaster.mRNA.fa.T__Drosophila_sechellia.dsec_caf1.dna_sm.toplevel.fa.m8')
+
+```
+```{r}
+df$q.length = (df$q.end - df$q.start + 1)
+df$s.length = abs(df$s.end - df$s.start + 1)
+df$s.strand = df$s.end - df$s.start > 0
+
+# head(df)
+# df[df$s.length <0,]
+
+
+```{r}
+ggplot(df) + geom_bin2d(aes(x = log10(q.length), y = log10(s.length), fill = log10(..density..))
+                        ,bins = 60 )
+# plot(df$q.length, df$s.length,cex = 0.5, log = 'xy')
+#chroms = unique(df$scaffold)
+# chroms[!grepl('scaffold', chroms)]
+```
+```{r}
+ggplot(df) + geom_bin2d(aes(x = log10(alignment_length), y = log10(bit_score), fill = log10(..density..))
+                        ,bins = 60 )
+# ggplot(df) + geom_point(aes(x = log10(alignment_length), y = log10(bit_score)))
+# plot(df$alignment_length, df$bit_score,cex = 0.5, log = 'xy')
+
+```
+
+```{r}
+# BiocInstaller::biocLite('bedr',lib='/local/data/public/RLib/')
+library('bedr')
+bedtemp=df[,c('scaffold','s.start','s.end')]
+MIN=pmin(bedtemp$s.start,bedtemp$s.end)
+MAX=pmax(bedtemp$s.start,bedtemp$s.end)
+# bedtemp
+bedtemp = transform(bedtemp,
+          scaffold=as.character(scaffold),
+          s.start=as.numeric(s.start),
+          s.end = as.numeric(s.end))
+# types(bedtemp)
+bedtemp$s.start=MIN-1
+bedtemp$s.end=  MAX  -1
+# bedtemp[,1]<-as.character(bedtemp[,1])
+# bedtemp[,1]<-pates0(bedtemp[,1])
+# options(check.chr = F)
+convert2bed(bedtemp,check.chr = F)
+# is.valid.region(bedtemp, check.chr = F)
+# bedr::bed2index(bedtemp)
+```
+```{r}
+library('bedr')
+getAnywhere(check.binary)
+index <- get.example.regions();
+a <- index[[1]];
+a
+bedr:::determine.input(a);
+# Sys.which
+Sys.getenv('PATH')
+?R.home
+Sys.getenv('foo')
+```
+
+
+```{r}
+# a
+## Not run:
+# a.bed <- convert2bed(a)
+# a.bed
+```
+```{r}
+if (check.binary("bedtools", verbose =F)) {
+# example data
+a <- get.random.regions(n = 1000, chr = "chr22", size.mean = 10)
+b <- get.random.regions(n = 1000, chr = "chr22", size.mean = 10)
+d <- get.random.regions(n = 1000, chr = "chr22", size.mean = 10)
+e <- get.random.regions(n = 1000, chr = "chr22", size.mean = 10)
+f <- get.random.regions(n = 1000, chr = "chr22", size.mean = 10)
+# pdf("bedr.plot.region.ex.pdf")
+# basic venn diagrams
+bedr.plot.region(input = list(a=a,b=b))
+bedr.plot.region(input = list(a=a,b=b,d=d))
+#bedr.plot.region(input = list(a=a,b=b,d=d,e=e))
+#bedr.plot.region(input = list(a=a,b=b,d=d,e=e,f=f))
+### change venn parameters
+bedr.plot.region(
+input = list(a=a,b=b,d=d),
+params = list(lty = 2, label.col = "black", main = "Region Overlap")
+)
+### try with different
+#bedr.plot.region(input = list(a=a,b=b), feature = "gene")
+#bedr.plot.region(input = list(a=a,b=b), feature = "reference")
+#bedr.plot.region(input = list(a=a,b=b), feature = "interval")
+#bedr.plot.region(input = list(a=a,b=b), feature = "cluster")
+#bedr.plot.region(input = list(a=a,b=b), feature = "bp")
+# dev.off()
+}
+```
+```{r}
+regions <- get.example.regions()
+regions
+
+regions <- get.example.regions()
+
+region <- regions[[1]]
+bedr.sort.region(
+x = region,
+engine = "unix",
+method = "natural"
+)
+system.time({
+  
+bedr.sort.region(
+x = region,
+engine = "R",
+method = "lexicographical"
+)
+})
+system.time({
+
+  bedr.sort.region(
+x = region,
+engine = "unix"
+)
+})
+# bedr.sort.region(
+# x = region,
+# engine = "bedops"
+# )
+
+# df$scaffold
+
+```

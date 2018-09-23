@@ -1,0 +1,87 @@
+
+df = res[[4]]
+par(mfrow= c(3,2))
+par(mai = rep(0.3,4))
+# act = 
+
+# plot.new()
+# cluster
+options(error = recover)
+# options(error = browser)
+for (df in res){
+  print(df$call)
+  ENDs = c(0, df$segRows$endRow)
+  len_probe = ENDs[-1] - ENDs[-length(ENDs)]
+  signal = df$output$seg.mean
+  
+  
+  vct = sort(signal)
+  start = 1
+  x = vct[1:start]
+  # calc_mad(vct[1:2])
+  xs = c()
+  ys = c()
+  zs = c()
+  seg = 1
+  
+  vcti = vct[-(1:start)]
+  # actual = act[-(1:start)]
+  outdf = data.frame(
+    avg = NULL,
+    stdev=NULL,
+    N = NULL,
+    t.pval=NULL
+  )
+  for (ii in  1:length(vcti)){
+    i  = vcti[ii]
+    if (length(x) > 5){
+      
+      mad = calc_mad(x)
+      z = (i-mean(x)) / mad
+      p = pnorm(z)
+      # ys = c(ys,p)
+      
+      if (!is.na(z) & seg){
+        if (z > 5 | ii == length(vcti)){
+          stat = t.test(x, mu = -1)
+          # ?t.test
+          # pval = 
+          mx = mean(x)
+          pval = pt( (mx + 1)/ (mad/sqrt(length(x))),df = length(x) -1,lower = F)
+          # pval = stat$p.value
+          paste0(round(mean(x),5),' ',round(mad,5),' ',length(x),' pval=',pval)%f%print
+          print(pval) 
+          # df = rbind(DF,)
+          outdf = rbind(outdf,list(avg = mean(x), stdev = mad, N = length(x), t.pval = pval))
+          # stopifnot(round(mean(x),5) !=  -0.26157)
+          if(round(mean(x),5) ==  -0.26157){
+            # stop()
+          }
+          # paste0(mad,' ',length(x))%f%print
+          x = c()
+        }
+      }
+      
+    }else{
+      z = 0
+    }
+    ys = c(ys,z)
+    x = c(x,i)
+    xs = c(xs,i)
+    zs = c(zs,mad)
+    # zs = c(zs,sd(x))
+    # print(p)
+  }
+  # print(outdf)
+  # qnorm
+  # pnorm
+  # plot(vct[-(1:10)])
+  try({
+    plot(ys)
+    par(new = T)
+    plot(xs, ylab = '',axes = F)
+    # par(new = T)
+    # # zs = exp(zs)
+    # plot(zs, ylab = '',axes = F,type = 'l')
+  })
+}

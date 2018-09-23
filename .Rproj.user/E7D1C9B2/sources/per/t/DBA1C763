@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1510328828861.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3567692937",
+    "id" : "DBA1C763",
+    "lastKnownWriteTime" : 1509536633,
+    "last_content_update" : 1509536633,
+    "path" : "/local/data/public/fg368/genome_informatics/assignment_1/main.Rmd",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "241,450",
+        "scrollLine" : "0"
+    },
+    "relative_order" : 9,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

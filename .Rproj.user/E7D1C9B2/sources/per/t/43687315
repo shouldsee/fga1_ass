@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1510493276467.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "606666375",
+    "id" : "43687315",
+    "lastKnownWriteTime" : 1510491888,
+    "last_content_update" : 1510491888,
+    "path" : "/local/data/public/fg368/genome_informatics/evidence_assembly.Rmd",
+    "project_path" : null,
+    "properties" : {
+    },
+    "relative_order" : 11,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

@@ -1,0 +1,7 @@
+"0","knitr::opts_chunk$set(echo = F,#root.dir='rpc2017/a1/'"
+"0","                      # fig.pos = 'H',"
+"0","                      cache=TRUE,"
+"0","                      eval.after = c('fig.cap','code')"
+"0","                      # ref.label = "
+"0",")"
+"0","debug = F"

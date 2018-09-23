@@ -1,0 +1,258 @@
+=====================================================================
+ Ubuntu 14.04.5 LTS (trusty) in Maths
+ Host: subliminal, Group: TEACHING, Kernel: Linux 3.13.0-132-generic
+ Avail Memory: 515993M, Swap: 7628M, Disk: 14903G
+ Arch: x86_64, AMD Opteron(tm) Processor 6376  [64 CPUs] @2300MHz
+ Maker: Supermicro, Model: H8QG6 Main Server Chassis
+=====================================================================
+
+When a taught course needs access to this server other users may be 
+asked to stop running jobs on it. If you are asked to stop your jobs 
+on this server, to make way for teaching use, please do so. 
+If necessary a system administrator will kill jobs to make way for 
+teaching usage.
+
+Please do read about how to run jobs on our computers, including nicing
+and checkpointing:
+
+http://things.maths.cam.ac.uk/computing/policy/longjobs.html
+When using shared resources, remember that others may also wish to use them.
+Don't take all of a resource. When using licensed maths software please quit
+the program when you are finished to free up the licence.
+
+27/09/17      Maths Linux reboots 04/10/17 [REBOOT]
+01/09/17      Maths Linux reboots 06/09/17 [REBOOT]
+27/07/17      Power cuts 29/07/17 [IMPORTANT]
+26/07/17      Maths Linux reboots 02/08/17 [REBOOT]
+
+]0;/local/data/public/fg368/functional_genomics]0;fg368@subliminal: /local/data/public/fg368/functional_genomics[01;32mfg368@subliminal[00m:[01;34m/local/data/public/fg368/functional_genomics[00m$ ^C
+]0;/local/data/public/fg368/functional_genomics]0;fg368@subliminal: /local/data/public/fg368/functional_genomics[01;32mfg368@subliminal[00m:[01;34m/local/data/public/fg368/functional_genomics[00m$ [K]0;fg368@subliminal: /local/data/public/fg368/functional_genomics[01;32mfg368@subliminal[00m:[01;34m/local/data/public/fg368/functional_genomics[00m$ asfdas[K[K[K[K[K[Kecho $DATA
+/local/data/public/fg368
+]0;/local/data/public/fg368/functional_genomics]0;fg368@subliminal: /local/data/public/fg368/functional_genomics[01;32mfg368@subliminal[00m:[01;34m/local/data/public/fg368/functional_genomics[00m$ [K]0;fg368@subliminal: /local/data/public/fg368/functional_genomics[01;32mfg368@subliminal[00m:[01;34m/local/data/public/fg368/functional_genomics[00m$ cd /local/data/public/functional_genomics/rnaseqprac
+]0;/local/data/public/functional_genomics/rnaseqpracfg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ head pro[Kelim.sh .[K
+alias mv="mv -i"
+alias cp="cp -i"
+alias rm='rm -i'
+
+export BOWTIE_INDEXES=/local/data/public/functional_genomics/rnaseqprac/ref/
+. /usr/share/modules/init/bash
+. /usr/share/modules/init/zsh
+export MODULEPATH=/local/data/public/modules/out/modulefiles:$MODULEPATH
+module load samtools/0.1.19 jdk IGV libgtextutils fastx_toolkit tree bowtie/1.1.1 tophat/1.4.1 R/3.2.2
+
+]0;/local/data/public/functional_genomics/rnaseqpracfg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ source ./prelim.sh 
+Loaded samtools, installed in samtools_HOME
+Loaded jdk, installed in jdk_HOME
+Loaded IGV, installed in IGV_HOME
+Note: run IGV with: java -Xmx2000m -jar $IGV_HOME/java/igv.jar ...
+      or run with: igv.sh (fixed 2G memory)
+      change the value of the -Xmx parameter for more or less memory
+Loaded libgtextutils, installed in libgtextutils_HOME
+Loaded fastx_toolkit, installed in fastx_toolkit_HOME
+Loaded tree, installed in tree_HOME
+Loaded bowtie, installed in bowtie_HOME
+Loaded tophat, installed in tophat_HOME
+Loaded R, installed in R_HOME
+]0;/local/data/public/functional_genomics/rnaseqpracfg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ echo ?[K$?
+0
+]0;/local/data/public/functional_genomics/rnaseqpracfg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ cp . -R $DT[KATA/f/local/data/public/fg368/fybc[K[K[Kunctional_genomics/
+cp: cannot access ‘./R’: Permission denied
+cp: cannot open ‘./data/all_reads/GSM461176_untreated1/SRR031728_trim.fastq’ for reading: Permission denied
+cp: cannot open ‘./data/all_reads/GSM461176_untreated1/SRR031729_trim.fastq’ for reading: Permission denied
+cp: cannot open ‘./data/split_reads/GSM461176_untreated1/SRR031728_20.fastq’ for reading: Permission denied
+^C
+]0;/local/data/public/functional_genomics/rnaseqpracfg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ ls ~/t
+tmp                     tmp.1.ebwt              tmp.2.ebwt              tmp.3.ebwt              tmp.4.ebwt              tree_1.7.0-3_amd64.deb
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ ls ~/t
+tmp                     tmp.1.ebwt              tmp.2.ebwt              tmp.3.ebwt              tmp.4.ebwt              tree_1.7.0-3_amd64.deb
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ ls ~/tmp -lh
+-rw------- 1 fg368 cbmphil 238 Oct  9 12:23 /home/fg368/tmp
+]0;/local/data/public/functional_genomics/rnaseqpracfg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ ls ~/tmp -lh* -lh
+-rw------- 1 fg368 cbmphil  238 Oct  9 12:23 /home/fg368/tmp
+-rw------- 1 fg368 cbmphil  14M Nov  8 11:51 /home/fg368/tmp.1.ebwt
+-rw------- 1 fg368 cbmphil 5.9M Nov  8 11:51 /home/fg368/tmp.2.ebwt
+-rw------- 1 fg368 cbmphil 332K Nov  8 11:50 /home/fg368/tmp.3.ebwt
+-rw------- 1 fg368 cbmphil  39M Nov  8 11:50 /home/fg368/tmp.4.ebwt
+]0;/local/data/public/functional_genomics/rnaseqpracfg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ ls ref/[K[K[K[K
+bwt_out/        data/           mmseq2counts.R  mmseq_out/      prelim.sh       R/              ref/            th_out/         th_out.old/     th_out.split/
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ ls data/
+all_reads/   split_reads/ 
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ ls data/all_reads/
+.DS_Store             GSM461177_untreated2/ GSM461179_treated1/   GSM461181_treated3/   
+GSM461176_untreated1/ GSM461178_untreated3/ GSM461180_treated2/   GSM461182_untreated4/ 
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ ls data/all_reads/GSM4611_un[K[K[K76_untreated1/
+SRR031728.fastq  SRR031728_trim.fastq  SRR031729.fastq  SRR031729_trim.fastq
+]0;/local/data/public/functional_genomics/rnaseqpracfg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ ls data/all_reads/GSM461176_untreated1/SRR03172
+SRR031728.fastq       SRR031728_trim.fastq  SRR031729.fastq       SRR031729_trim.fastq  
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ ls data/all_reads/GSM461176_untreated1/SRR031728
+SRR031728.fastq       SRR031728_trim.fastq  
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ ls data/all_reads/GSM461176_untreated1/SRR031728
+SRR031728.fastq       SRR031728_trim.fastq  
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ ls data/all_reads/GSM461176_untreated1/SRR031728.fat[Kstq
+data/all_reads/GSM461176_untreated1/SRR031728.fastq
+]0;/local/data/public/functional_genomics/rnaseqpracfg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ ls data/all_reads/GSM461176_untreated1/SRR031728.fastq[1@h[1@o[1@m[1@e[1P[1P[1P[1@e[1@a[1@d[1P[1P data/all_reads/GSM461176_untreated1/SRR031728.fastq
+@SRR031728.1 HWI-EAS299:3:1:5:1861 length=75
+CGAGCATTGCAATCAGATGGACGANCNNNNNNNNNNNNNNNNNNNNNNTNTNTTTGGCCTGGTTNNNNNNNANNN
++SRR031728.1 HWI-EAS299:3:1:5:1861 length=75
+@5A>BBCCCCBCBBBA>>######!#!!!!!!!!!!!!!!!!!!!!!!#!#!############!!!!!!!#!!!
+@SRR031728.2 HWI-EAS299:3:1:5:133 length=75
+TAAACGGACGGGCTCTGCAGTAGTNTNNNNNNNNNNNNNNNNNNNNNNCNANTCTAGAATGCGTNNNNNNNANNN
++SRR031728.2 HWI-EAS299:3:1:5:133 length=75
+B;B?ABBCCB>ABBB<A#######!#!!!!!!!!!!!!!!!!!!!!!!#!#!############!!!!!!!#!!!
+@SRR031728.3 HWI-EAS299:3:1:5:1977 length=75
+GTCAAGCACTCGTTCGAGATCATTCANNNNNNNNNNNNNNNNNNNNNNCTGNAGATCCTGGTCAGNNNNNNCANN
+]0;/local/data/public/functional_genomics/rnaseqpracfg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ head data/all_reads/GSM461176_untreated1/SRR031728.fastq[C[K[K[K[K[K[K[K[K[K[K[K3172
+SRR031728.fastq       SRR031728_trim.fastq  SRR031729.fastq       SRR031729_trim.fastq  
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ head data/all_reads/GSM461176_untreated1/SRR031729fa[K[K[K9
+SRR031729.fastq       SRR031729_trim.fastq  
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ head data/all_reads/GSM461176_untreated1/SRR031729.fastq fastq[K[K[K[K[K
+@SRR031729.1 HWI-EAS299:3:1:15:1248 length=75
+CCGATGCTAAGGCCAATGGCAAGNATGTGGNGCCCAAGAAGAANCCCNNNTANNGGNNNNNNNNNNNNNNNNNNN
++SRR031729.1 HWI-EAS299:3:1:15:1248 length=75
+BBAC45CCC@A3BBCB>4BCBA0!993@B8!,;BB>AA;B###!###!!!##!!##!!!!!!!!!!!!!!!!!!!
+@SRR031729.2 HWI-EAS299:3:1:15:345 length=75
+AAAAGCCCACGGTAGGACGTCGANACATAGNAGTGCTTACAACNCTGNNNTGNAAANNNNNNNNNNNNNNNNNNN
++SRR031729.2 HWI-EAS299:3:1:15:345 length=75
+BBBBBBBBBCBA@BBB@BC>AB=!=?;:B<!<B7AA@>B@=B>!###!!!##!###!!!!!!!!!!!!!!!!!!!
+@SRR031729.3 HWI-EAS299:3:1:15:286 length=75
+GGTGACCTTGCCCCAGACAGCGCNGACGCGNGTCTTGCGCTCGNGATNNNGTNGCANNNNNNNNNNNNNNNNNNN
+]0;/local/data/public/functional_genomics/rnaseqpracfg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ head data/all_reads/GSM461176_untreated1/SRR031729.fastq [1P[1@8
+@SRR031728.1 HWI-EAS299:3:1:5:1861 length=75
+CGAGCATTGCAATCAGATGGACGANCNNNNNNNNNNNNNNNNNNNNNNTNTNTTTGGCCTGGTTNNNNNNNANNN
++SRR031728.1 HWI-EAS299:3:1:5:1861 length=75
+@5A>BBCCCCBCBBBA>>######!#!!!!!!!!!!!!!!!!!!!!!!#!#!############!!!!!!!#!!!
+@SRR031728.2 HWI-EAS299:3:1:5:133 length=75
+TAAACGGACGGGCTCTGCAGTAGTNTNNNNNNNNNNNNNNNNNNNNNNCNANTCTAGAATGCGTNNNNNNNANNN
++SRR031728.2 HWI-EAS299:3:1:5:133 length=75
+B;B?ABBCCB>ABBB<A#######!#!!!!!!!!!!!!!!!!!!!!!!#!#!############!!!!!!!#!!!
+@SRR031728.3 HWI-EAS299:3:1:5:1977 length=75
+GTCAAGCACTCGTTCGAGATCATTCANNNNNNNNNNNNNNNNNNNNNNCTGNAGATCCTGGTCAGNNNNNNCANN
+]0;/local/data/public/functional_genomics/rnaseqpracfg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ head data/
+all_reads/   split_reads/ 
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ head data/
+all_reads/   split_reads/ 
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ head data/all_reads/
+.DS_Store             GSM461177_untreated2/ GSM461179_treated1/   GSM461181_treated3/   
+GSM461176_untreated1/ GSM461178_untreated3/ GSM461180_treated2/   GSM461182_untreated4/ 
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ head data/all_reads/
+.DS_Store             GSM461177_untreated2/ GSM461179_treated1/   GSM461181_treated3/   
+GSM461176_untreated1/ GSM461178_untreated3/ GSM461180_treated2/   GSM461182_untreated4/ 
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ head data/all_reads/76[K[K
+.DS_Store             GSM461177_untreated2/ GSM461179_treated1/   GSM461181_treated3/   
+GSM461176_untreated1/ GSM461178_untreated3/ GSM461180_treated2/   GSM461182_untreated4/ 
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ head data/all_reads/
+.DS_Store             GSM461177_untreated2/ GSM461179_treated1/   GSM461181_treated3/   
+GSM461176_untreated1/ GSM461178_untreated3/ GSM461180_treated2/   GSM461182_untreated4/ 
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ head data/all_reads/F[KGSM461176_untreated1/SRR03172
+SRR031728.fastq       SRR031728_trim.fastq  SRR031729.fastq       SRR031729_trim.fastq  
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ head data/all_reads/GSM461176_untreated1/SRR03172f[K8fa[K[K.fastq 
+@SRR031728.1 HWI-EAS299:3:1:5:1861 length=75
+CGAGCATTGCAATCAGATGGACGANCNNNNNNNNNNNNNNNNNNNNNNTNTNTTTGGCCTGGTTNNNNNNNANNN
++SRR031728.1 HWI-EAS299:3:1:5:1861 length=75
+@5A>BBCCCCBCBBBA>>######!#!!!!!!!!!!!!!!!!!!!!!!#!#!############!!!!!!!#!!!
+@SRR031728.2 HWI-EAS299:3:1:5:133 length=75
+TAAACGGACGGGCTCTGCAGTAGTNTNNNNNNNNNNNNNNNNNNNNNNCNANTCTAGAATGCGTNNNNNNNANNN
++SRR031728.2 HWI-EAS299:3:1:5:133 length=75
+B;B?ABBCCB>ABBB<A#######!#!!!!!!!!!!!!!!!!!!!!!!#!#!############!!!!!!!#!!!
+@SRR031728.3 HWI-EAS299:3:1:5:1977 length=75
+GTCAAGCACTCGTTCGAGATCATTCANNNNNNNNNNNNNNNNNNNNNNCTGNAGATCCTGGTCAGNNNNNNCANN
+]0;/local/data/public/functional_genomics/rnaseqpracfg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ head data/all_reads/GSM461176_untreated1/SRR031728.fastq [1P[1@9
+@SRR031729.1 HWI-EAS299:3:1:15:1248 length=75
+CCGATGCTAAGGCCAATGGCAAGNATGTGGNGCCCAAGAAGAANCCCNNNTANNGGNNNNNNNNNNNNNNNNNNN
++SRR031729.1 HWI-EAS299:3:1:15:1248 length=75
+BBAC45CCC@A3BBCB>4BCBA0!993@B8!,;BB>AA;B###!###!!!##!!##!!!!!!!!!!!!!!!!!!!
+@SRR031729.2 HWI-EAS299:3:1:15:345 length=75
+AAAAGCCCACGGTAGGACGTCGANACATAGNAGTGCTTACAACNCTGNNNTGNAAANNNNNNNNNNNNNNNNNNN
++SRR031729.2 HWI-EAS299:3:1:15:345 length=75
+BBBBBBBBBCBA@BBB@BC>AB=!=?;:B<!<B7AA@>B@=B>!###!!!##!###!!!!!!!!!!!!!!!!!!!
+@SRR031729.3 HWI-EAS299:3:1:15:286 length=75
+GGTGACCTTGCCCCAGACAGCGCNGACGCGNGTCTTGCGCTCGNGATNNNGTNGCANNNNNNNNNNNNNNNNNNN
+]0;/local/data/public/functional_genomics/rnaseqpracfg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ cd ..[K[K[K[K[Khead data/all_reads/GSM461176_untreated1/SRR031729.fastq 8[C[C[C[C[C[C[C9[C[C[C[C[C[C[C[1P8.fastq[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K1
+GSM461176_untreated1/ GSM461177_untreated2/ GSM461178_untreated3/ GSM461179_treated1/   GSM461180_treated2/   GSM461181_treated3/   GSM461182_untreated4/
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ head data/all_reads/GSM4611
+GSM461176_untreated1/ GSM461177_untreated2/ GSM461178_untreated3/ GSM461179_treated1/   GSM461180_treated2/   GSM461181_treated3/   GSM461182_untreated4/
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ head data/all_reads/GSM461180_treated2/SRR03172
+SRR031724_1.fastq  SRR031724_2.fastq  SRR031725_1.fastq  SRR031725_2.fastq  
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ head data/all_reads/GSM461180_treated2/SRR0317224[K[K
+SRR031724_1.fastq  SRR031724_2.fastq  SRR031725_1.fastq  SRR031725_2.fastq  
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ head data/all_reads/GSM461180_treated2/SRR03172[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K
+GSM461180_treated2/   GSM461181_treated3/   GSM461182_untreated4/ 
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ head data/all_reads/GSM46118
+GSM461180_treated2/   GSM461181_treated3/   GSM461182_untreated4/ 
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ head data/all_reads/GSM461180_treated2/SRR03172
+SRR031724_1.fastq  SRR031724_2.fastq  SRR031725_1.fastq  SRR031725_2.fastq  
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ head data/all_reads/GSM461180_treated2/SRR031724_.1[K[K1.fastq 
+@SRR031724.1 HWI-EAS299_4_30M2BAAXX:5:1:1513:1024 length=37
+GTTTTGTCCAAGTTCTGGTAGCTGAATCCTGGGGCGC
++SRR031724.1 HWI-EAS299_4_30M2BAAXX:5:1:1513:1024 length=37
+IIIIIIIIIIIIIIIIIIIIIIIIIIII+HIIII<IE
+@SRR031724.2 HWI-EAS299_4_30M2BAAXX:5:1:937:1157 length=37
+GTTGTCGCATTCCTTACTCTCATTCGGGAATTCTGTT
++SRR031724.2 HWI-EAS299_4_30M2BAAXX:5:1:937:1157 length=37
+IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
+@SRR031724.3 HWI-EAS299_4_30M2BAAXX:5:1:1057:1153 length=37
+GTTTCTGGTTTCGGACATTACTTGTTAACGTGGCTGG
+]0;/local/data/public/functional_genomics/rnaseqpracfg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ head data/all_reads/GSM461180_treated2/SRR031724_1.fastq [K[K[K[K[K[K[K[K[K[K[K2
+SRR031724_1.fastq  SRR031724_2.fastq  SRR031725_1.fastq  SRR031725_2.fastq  
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ head data/all_reads/GSM461180_treated2/SRR031725_1`[K.fastq 
+@SRR031725.1 HWI-EAS299_4_30M2BAAXX:6:1:1570:1282 length=37
+GTTTTACAATTTTTATTTTTGTTATATTAAGTGGTGT
++SRR031725.1 HWI-EAS299_4_30M2BAAXX:6:1:1570:1282 length=37
+IIIIIIIIIIIIIIIIIIIIIIIIIIIIIII.II:I8
+@SRR031725.2 HWI-EAS299_4_30M2BAAXX:6:1:1055:1013 length=37
+GGCCGGAGCAGCCTTCTTAGCCGCTGGGGCAGCAGCC
++SRR031725.2 HWI-EAS299_4_30M2BAAXX:6:1:1055:1013 length=37
+IIIIIIIIIIIIIIIIIIIIIIIIIIIIIICIIIIII
+@SRR031725.3 HWI-EAS299_4_30M2BAAXX:6:1:1675:1397 length=37
+GAAAGTAATAAATATTTTCTGAATGAGAGTAAGAAAA
+]0;/local/data/public/functional_genomics/rnaseqpracfg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ head data/all_reads/GSM461180_treated2/SRR031725_1.fastq [K[K[K[K[K[K[K[K[K_2.fastq 
+@SRR031725.1 HWI-EAS299_4_30M2BAAXX:6:1:1570:1282 length=37
+GTCAAATCTATTTCTGGTTCTAACAGATTTTCACTTA
++SRR031725.1 HWI-EAS299_4_30M2BAAXX:6:1:1570:1282 length=37
+IIIIIIIIIIIIIIIIIGIIIIIIIII<IE6IIIEEI
+@SRR031725.2 HWI-EAS299_4_30M2BAAXX:6:1:1055:1013 length=37
+GCCACCCAAAAAGCCAACCGAGAAATCCGCCAAGCCT
++SRR031725.2 HWI-EAS299_4_30M2BAAXX:6:1:1055:1013 length=37
+IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII?
+@SRR031725.3 HWI-EAS299_4_30M2BAAXX:6:1:1675:1397 length=37
+ATCATTTTTAGTTGGATTATCAATTCCAATTTCTTTT
+]0;/local/data/public/functional_genomics/rnaseqpracfg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ head data/all_reads/GSM461180_treated2/SRR031725_2.fastq 1[C[C[C[C[C[C[C4[C[C[C[C[C[C[C[C[C76_untreated1/SRR031729[C[C[C[C[C[C[C8[C[C[C[C[C[C[C9[C[C[C[C[C[C[C8[C[C[C[C[C[C[C9[C[C[C[C[C[C[C8[C[C[C[C[C[C[C9[C[C[C[C[C[C[C80_treated2/SRR031724_1[C[C[C[C[C[C[C76_untreated1/SRR031729[C[C[C[C[C[C[C8[C[C[C[C[C[C[C
+@SRR031728.1 HWI-EAS299:3:1:5:1861 length=75
+CGAGCATTGCAATCAGATGGACGANCNNNNNNNNNNNNNNNNNNNNNNTNTNTTTGGCCTGGTTNNNNNNNANNN
++SRR031728.1 HWI-EAS299:3:1:5:1861 length=75
+@5A>BBCCCCBCBBBA>>######!#!!!!!!!!!!!!!!!!!!!!!!#!#!############!!!!!!!#!!!
+@SRR031728.2 HWI-EAS299:3:1:5:133 length=75
+TAAACGGACGGGCTCTGCAGTAGTNTNNNNNNNNNNNNNNNNNNNNNNCNANTCTAGAATGCGTNNNNNNNANNN
++SRR031728.2 HWI-EAS299:3:1:5:133 length=75
+B;B?ABBCCB>ABBB<A#######!#!!!!!!!!!!!!!!!!!!!!!!#!#!############!!!!!!!#!!!
+@SRR031728.3 HWI-EAS299:3:1:5:1977 length=75
+GTCAAGCACTCGTTCGAGATCATTCANNNNNNNNNNNNNNNNNNNNNNCTGNAGATCCTGGTCAGNNNNNNCANN
+]0;/local/data/public/functional_genomics/rnaseqpracfg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ head data/all_reads/GSM461176_untreated1/SRR031728.fastq [1@[[C[1@][1@,[1@9
+==> data/all_reads/GSM461176_untreated1/SRR031728.fastq <==
+@SRR031728.1 HWI-EAS299:3:1:5:1861 length=75
+CGAGCATTGCAATCAGATGGACGANCNNNNNNNNNNNNNNNNNNNNNNTNTNTTTGGCCTGGTTNNNNNNNANNN
++SRR031728.1 HWI-EAS299:3:1:5:1861 length=75
+@5A>BBCCCCBCBBBA>>######!#!!!!!!!!!!!!!!!!!!!!!!#!#!############!!!!!!!#!!!
+@SRR031728.2 HWI-EAS299:3:1:5:133 length=75
+TAAACGGACGGGCTCTGCAGTAGTNTNNNNNNNNNNNNNNNNNNNNNNCNANTCTAGAATGCGTNNNNNNNANNN
++SRR031728.2 HWI-EAS299:3:1:5:133 length=75
+B;B?ABBCCB>ABBB<A#######!#!!!!!!!!!!!!!!!!!!!!!!#!#!############!!!!!!!#!!!
+@SRR031728.3 HWI-EAS299:3:1:5:1977 length=75
+GTCAAGCACTCGTTCGAGATCATTCANNNNNNNNNNNNNNNNNNNNNNCTGNAGATCCTGGTCAGNNNNNNCANN
+
+==> data/all_reads/GSM461176_untreated1/SRR031729.fastq <==
+@SRR031729.1 HWI-EAS299:3:1:15:1248 length=75
+CCGATGCTAAGGCCAATGGCAAGNATGTGGNGCCCAAGAAGAANCCCNNNTANNGGNNNNNNNNNNNNNNNNNNN
++SRR031729.1 HWI-EAS299:3:1:15:1248 length=75
+BBAC45CCC@A3BBCB>4BCBA0!993@B8!,;BB>AA;B###!###!!!##!!##!!!!!!!!!!!!!!!!!!!
+@SRR031729.2 HWI-EAS299:3:1:15:345 length=75
+AAAAGCCCACGGTAGGACGTCGANACATAGNAGTGCTTACAACNCTGNNNTGNAAANNNNNNNNNNNNNNNNNNN
++SRR031729.2 HWI-EAS299:3:1:15:345 length=75
+BBBBBBBBBCBA@BBB@BC>AB=!=?;:B<!<B7AA@>B@=B>!###!!!##!###!!!!!!!!!!!!!!!!!!!
+@SRR031729.3 HWI-EAS299:3:1:15:286 length=75
+GGTGACCTTGCCCCAGACAGCGCNGACGCGNGTCTTGCGCTCGNGATNNNGTNGCANNNNNNNNNNNNNNNNNNN
+]0;/local/data/public/functional_genomics/rnaseqpracfg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ head data/all_reads/GSM461176_untreated1/SRR03172[8,9].fastq [1P[C[1@][1P[1P[1P[1P[1P[1@8
+SRR031728.fastq       SRR031728_trim.fastq  
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ head data/all_reads/GSM461176_untreated1/SRR031728.fastq 
+SRR031728.fastq       SRR031728_trim.fastq  
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ head data/all_reads/GSM461176_untreated1/SRR031728.fastq 

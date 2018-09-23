@@ -1,0 +1,849 @@
+=====================================================================
+ Ubuntu 14.04.5 LTS (trusty) in Maths
+ Host: subliminal, Group: TEACHING, Kernel: Linux 3.13.0-132-generic
+ Avail Memory: 515993M, Swap: 7628M, Disk: 14903G
+ Arch: x86_64, AMD Opteron(tm) Processor 6376  [64 CPUs] @2300MHz
+ Maker: Supermicro, Model: H8QG6 Main Server Chassis
+=====================================================================
+
+When a taught course needs access to this server other users may be 
+asked to stop running jobs on it. If you are asked to stop your jobs 
+on this server, to make way for teaching use, please do so. 
+If necessary a system administrator will kill jobs to make way for 
+teaching usage.
+
+Please do read about how to run jobs on our computers, including nicing
+and checkpointing:
+
+http://things.maths.cam.ac.uk/computing/policy/longjobs.html
+When using shared resources, remember that others may also wish to use them.
+Don't take all of a resource. When using licensed maths software please quit
+the program when you are finished to free up the licence.
+
+27/09/17      Maths Linux reboots 04/10/17 [REBOOT]
+01/09/17      Maths Linux reboots 06/09/17 [REBOOT]
+27/07/17      Power cuts 29/07/17 [IMPORTANT]
+26/07/17      Maths Linux reboots 02/08/17 [REBOOT]
+
+]0;/local/data/public/fg368/functional_genomics]0;fg368@subliminal: /local/data/public/fg368/functional_genomics[01;32mfg368@subliminal[00m:[01;34m/local/data/public/fg368/functional_genomics[00m$ [K]0;fg368@subliminal: /local/data/public/fg368/functional_genomics[01;32mfg368@subliminal[00m:[01;34m/local/data/public/fg368/functional_genomics[00m$ cd /local/data/public/functional_genomics/rnaseqprac
+]0;/local/data/public/functional_genomics/rnaseqpracfg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ ls
+[0m[37;44mbwt_out[0m  [37;44mdata[0m  mmseq2counts.R  [37;44mmmseq_out[0m  prelim.sh  [01;34mR[0m  [37;44mref[0m  [37;44mth_out[0m  [37;44mth_out.old[0m  [37;44mth_out.split[0m
+]0;/local/data/public/functional_genomics/rnaseqpracfg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ v[Kgfe[K[Krep dada/[K[K[Kta/Dmel[K[K[K[K[K[K[K[K[Kbwt_out/SRX0144
+SRX014458_namesorted.bam  SRX014459_namesorted.bam  SRX014460_namesorted.bam  SRX014461_namesorted.bam  SRX014462_namesorted.bam  SRX014463_namesorted.bam
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ grep bwt_out/SRX0144
+SRX014458_namesorted.bam  SRX014459_namesorted.bam  SRX014460_namesorted.bam  SRX014461_namesorted.bam  SRX014462_namesorted.bam  SRX014463_namesorted.bam
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ grep bwt_out/SRX0144[K[K[K[K[K[K[K[K[K[K[K[K[K[K[Kref/
+2L.1.ebwt                                                 Dmel.BDGP5-transcripts.1.ebwt
+2L.2.ebwt                                                 Dmel.BDGP5-transcripts.2.ebwt
+2L.3.ebwt                                                 Dmel.BDGP5-transcripts.3.ebwt
+2L.4.ebwt                                                 Dmel.BDGP5-transcripts.4.ebwt
+2L_biomart.Rdata                                          Dmel.BDGP5-transcripts.fa
+2L_cdna.1.ebwt                                            Dmel.BDGP5-transcripts.fa.fai
+2L_cdna.2.ebwt                                            Dmel.BDGP5-transcripts.rev.1.ebwt
+2L_cdna.3.ebwt                                            Dmel.BDGP5-transcripts.rev.2.ebwt
+2L_cdna.4.ebwt                                            Drosophila_melanogaster.BDGP5.25.64.gtf
+2L_cdna.fa                                                Drosophila_melanogaster.BDGP5.25.64.gtf.fai
+2L_cdna.rev.1.ebwt                                        Drosophila_melanogaster.BDGP5.25.64.t2g.txt
+2L_cdna.rev.2.ebwt                                        Drosophila_melanogaster.BDGP5.68.dna.toplevel.fa
+2L.fa                                                     Drosophila_melanogaster.BDGP5.68.gtf
+2L.fa.fai                                                 Drosophila_melanogaster.BDGP5.76.dna.toplevel.1.ebwt
+2L.rev.1.ebwt                                             Drosophila_melanogaster.BDGP5.76.dna.toplevel.2.ebwt
+2L.rev.2.ebwt                                             Drosophila_melanogaster.BDGP5.76.dna.toplevel.3.ebwt
+Dmel.BDGP5.1.ebwt                                         Drosophila_melanogaster.BDGP5.76.dna.toplevel.4.ebwt
+Dmel.BDGP5.2.ebwt                                         Drosophila_melanogaster.BDGP5.76.dna.toplevel.fa
+Dmel.BDGP5.3.ebwt                                         Drosophila_melanogaster.BDGP5.76.dna.toplevel.fa.fai
+Dmel.BDGP5.4.ebwt                                         Drosophila_melanogaster.BDGP5.76.dna.toplevel.rev.1.ebwt
+Dmel.BDGP5.fa                                             Drosophila_melanogaster.BDGP5.76.dna.toplevel.rev.2.ebwt
+Dmel.BDGP5.fa.fai                                         Drosophila_melanogaster.BDGP5.76.gtf
+Dmel.BDGP5.rev.1.ebwt                                     .DS_Store
+--More--[Kfg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ grep ref/mel[K[KDmel[K[K[K[K[KDmel.BDGP5
+Dmel.BDGP5.1.ebwt                  Dmel.BDGP5.fa                      Dmel.BDGP5-transcripts.1.ebwt      Dmel.BDGP5-transcripts.fa
+Dmel.BDGP5.2.ebwt                  Dmel.BDGP5.fa.fai                  Dmel.BDGP5-transcripts.2.ebwt      Dmel.BDGP5-transcripts.fa.fai
+Dmel.BDGP5.3.ebwt                  Dmel.BDGP5.rev.1.ebwt              Dmel.BDGP5-transcripts.3.ebwt      Dmel.BDGP5-transcripts.rev.1.ebwt
+Dmel.BDGP5.4.ebwt                  Dmel.BDGP5.rev.2.ebwt              Dmel.BDGP5-transcripts.4.ebwt      Dmel.BDGP5-transcripts.rev.2.ebwt
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ grep ref/Dmel.BDGP5.fa
+Dmel.BDGP5.fa      Dmel.BDGP5.fa.fai  
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ grep ref/Dmel.BDGP5.fa[C[C ref/Dmel.BDGP5.fa" ref/Dmel.BDGP5.fa" ref/Dmel.BDGP5.fa[1@e[1@u[1@c[1@h[1@r[1@o[1@m[1@a[1@t[1@i[1@c
+]0;/local/data/public/functional_genomics/rnaseqpracfg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ grep "euchromatic" ref/Dmel.BDGP5.fa[1P ref/Dmel.BDGP5.fa[1P ref/Dmel.BDGP5.fa[1P ref/Dmel.BDGP5.fa[1P ref/Dmel.BDGP5.fa[1P ref/Dmel.BDGP5.fa[1P ref/Dmel.BDGP5.fa[1P ref/Dmel.BDGP5.fa[1P ref/Dmel.BDGP5.fa[1P ref/Dmel.BDGP5.fa[1P ref/Dmel.BDGP5.fa[1P ref/Dmel.BDGP5.fa[1P ref/Dmel.BDGP5.fa[1P ref/Dmel.BDGP5.fa[1Pref/Dmel.BDGP5.fa[1P ref/Dmel.BDGP5.fa[1P ref/Dmel.BDGP5.fae ref/Dmel.BDGP5.fap ref/Dmel.BDGP5.fa[C ref/Dmel.BDGP5.fa> ref/Dmel.BDGP5.fa[1P ref/Dmel.BDGP5.fa" ref/Dmel.BDGP5.fa" ref/Dmel.BDGP5.fa[1@>
+[01;31m[K>[m[K2L dna:chromosome chromosome:BDGP5:2L:1:23011544:1 REF
+[01;31m[K>[m[K2R dna:chromosome chromosome:BDGP5:2R:1:21146708:1 REF
+[01;31m[K>[m[K3L dna:chromosome chromosome:BDGP5:3L:1:24543557:1 REF
+[01;31m[K>[m[K3R dna:chromosome chromosome:BDGP5:3R:1:27905053:1 REF
+[01;31m[K>[m[K4 dna:chromosome chromosome:BDGP5:4:1:1351857:1 REF
+[01;31m[K>[m[KX dna:chromosome chromosome:BDGP5:X:1:22422827:1 REF
+[01;31m[K>[m[KYHet dna:chromosome chromosome:BDGP5:YHet:1:347038:1 REF
+[01;31m[K>[m[Kdmel_mitochondrion_genome dna:chromosome chromosome:BDGP5:dmel_mitochondrion_genome:1:19517:1 REF
+]0;/local/data/public/functional_genomics/rnaseqpracfg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ vbo[K[K[Kbotw[K[Kwtie_build[K[K[K[K[K[K[Ke-buuil[K[K[Kild
+The program 'bowtie-build' is currently not installed. To run 'bowtie-build' please ask your administrator to install the package 'bowtie'
+]0;/local/data/public/functional_genomics/rnaseqpracfg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ ./[K 
+bwt_out/        data/           mmseq2counts.R  mmseq_out/      prelim.sh       R/              ref/            th_out/         th_out.old/     th_out.split/
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ . prelim.sh 
+Loaded samtools, installed in samtools_HOME
+Loaded jdk, installed in jdk_HOME
+Loaded IGV, installed in IGV_HOME
+Note: run IGV with: java -Xmx2000m -jar $IGV_HOME/java/igv.jar ...
+      or run with: igv.sh (fixed 2G memory)
+      change the value of the -Xmx parameter for more or less memory
+Loaded libgtextutils, installed in libgtextutils_HOME
+Loaded fastx_toolkit, installed in fastx_toolkit_HOME
+Loaded tree, installed in tree_HOME
+Loaded bowtie, installed in bowtie_HOME
+Loaded tophat, installed in tophat_HOME
+Loaded R, installed in R_HOME
+]0;/local/data/public/functional_genomics/rnaseqpracfg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ . prelim.sh bowtie-build
+No input sequence or sequence file specified!
+Usage: bowtie-build [options]* <reference_in> <ebwt_outfile_base>
+    reference_in            comma-separated list of files with ref sequences
+    ebwt_outfile_base       write Ebwt data to files with this dir/basename
+Options:
+    -f                      reference files are Fasta (default)
+    -c                      reference sequences given on cmd line (as <seq_in>)
+    --large-index           force generated index to be 'large', even if ref
+                            has fewer than 4 billion nucleotides
+    -C/--color              build a colorspace index
+    -a/--noauto             disable automatic -p/--bmax/--dcv memory-fitting
+    -p/--packed             use packed strings internally; slower, uses less mem
+    --bmax <int>            max bucket sz for blockwise suffix-array builder
+    --bmaxdivn <int>        max bucket sz as divisor of ref len (default: 4)
+    --dcv <int>             diff-cover period for blockwise (default: 1024)
+    --nodc                  disable diff-cover (algorithm becomes quadratic)
+    -r/--noref              don't build .3/.4.ebwt (packed reference) portion
+    -3/--justref            just build .3/.4.ebwt (packed reference) portion
+    -o/--offrate <int>      SA is sampled every 2^offRate BWT chars (default: 5)
+    -t/--ftabchars <int>    # of chars consumed in initial lookup (default: 10)
+    --ntoa                  convert Ns in reference to As
+    --seed <int>            seed for random number generator
+    -q/--quiet              verbose output (for debugging)
+    -h/--help               print detailed description of tool and its options
+    --usage                 print this usage message
+    --version               print version information and quit
+]0;/local/data/public/functional_genomics/rnaseqpracfg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ bowtie-build 
+bwt_out/        data/           mmseq2counts.R  mmseq_out/      prelim.sh       R/              ref/            th_out/         th_out.old/     th_out.split/
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ bowtie-build bwt[K[K[Kref/
+2L.1.ebwt                                                 Dmel.BDGP5-transcripts.1.ebwt
+2L.2.ebwt                                                 Dmel.BDGP5-transcripts.2.ebwt
+2L.3.ebwt                                                 Dmel.BDGP5-transcripts.3.ebwt
+2L.4.ebwt                                                 Dmel.BDGP5-transcripts.4.ebwt
+2L_biomart.Rdata                                          Dmel.BDGP5-transcripts.fa
+2L_cdna.1.ebwt                                            Dmel.BDGP5-transcripts.fa.fai
+2L_cdna.2.ebwt                                            Dmel.BDGP5-transcripts.rev.1.ebwt
+2L_cdna.3.ebwt                                            Dmel.BDGP5-transcripts.rev.2.ebwt
+2L_cdna.4.ebwt                                            Drosophila_melanogaster.BDGP5.25.64.gtf
+2L_cdna.fa                                                Drosophila_melanogaster.BDGP5.25.64.gtf.fai
+2L_cdna.rev.1.ebwt                                        Drosophila_melanogaster.BDGP5.25.64.t2g.txt
+2L_cdna.rev.2.ebwt                                        Drosophila_melanogaster.BDGP5.68.dna.toplevel.fa
+2L.fa                                                     Drosophila_melanogaster.BDGP5.68.gtf
+2L.fa.fai                                                 Drosophila_melanogaster.BDGP5.76.dna.toplevel.1.ebwt
+2L.rev.1.ebwt                                             Drosophila_melanogaster.BDGP5.76.dna.toplevel.2.ebwt
+2L.rev.2.ebwt                                             Drosophila_melanogaster.BDGP5.76.dna.toplevel.3.ebwt
+Dmel.BDGP5.1.ebwt                                         Drosophila_melanogaster.BDGP5.76.dna.toplevel.4.ebwt
+Dmel.BDGP5.2.ebwt                                         Drosophila_melanogaster.BDGP5.76.dna.toplevel.fa
+Dmel.BDGP5.3.ebwt                                         Drosophila_melanogaster.BDGP5.76.dna.toplevel.fa.fai
+Dmel.BDGP5.4.ebwt                                         Drosophila_melanogaster.BDGP5.76.dna.toplevel.rev.1.ebwt
+Dmel.BDGP5.fa                                             Drosophila_melanogaster.BDGP5.76.dna.toplevel.rev.2.ebwt
+Dmel.BDGP5.fa.fai                                         Drosophila_melanogaster.BDGP5.76.gtf
+Dmel.BDGP5.rev.1.ebwt                                     .DS_Store
+--More--[Kfg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ bowtie-build ref/Drosophila_melanogaster.BDGP5.fa
+No output file specified!
+Usage: bowtie-build [options]* <reference_in> <ebwt_outfile_base>
+    reference_in            comma-separated list of files with ref sequences
+    ebwt_outfile_base       write Ebwt data to files with this dir/basename
+Options:
+    -f                      reference files are Fasta (default)
+    -c                      reference sequences given on cmd line (as <seq_in>)
+    --large-index           force generated index to be 'large', even if ref
+                            has fewer than 4 billion nucleotides
+    -C/--color              build a colorspace index
+    -a/--noauto             disable automatic -p/--bmax/--dcv memory-fitting
+    -p/--packed             use packed strings internally; slower, uses less mem
+    --bmax <int>            max bucket sz for blockwise suffix-array builder
+    --bmaxdivn <int>        max bucket sz as divisor of ref len (default: 4)
+    --dcv <int>             diff-cover period for blockwise (default: 1024)
+    --nodc                  disable diff-cover (algorithm becomes quadratic)
+    -r/--noref              don't build .3/.4.ebwt (packed reference) portion
+    -3/--justref            just build .3/.4.ebwt (packed reference) portion
+    -o/--offrate <int>      SA is sampled every 2^offRate BWT chars (default: 5)
+    -t/--ftabchars <int>    # of chars consumed in initial lookup (default: 10)
+    --ntoa                  convert Ns in reference to As
+    --seed <int>            seed for random number generator
+    -q/--quiet              verbose output (for debugging)
+    -h/--help               print detailed description of tool and its options
+    --usage                 print this usage message
+    --version               print version information and quit
+]0;/local/data/public/functional_genomics/rnaseqpracfg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ bowtie-build ref/Drosophila_melanogaster.BDGP5.fa tmp
+Settings:
+  Output files: "tmp.*.ebwt"
+  Line rate: 6 (line is 64 bytes)
+  Lines per side: 1 (side is 64 bytes)
+  Offset rate: 5 (one in 32)
+  FTable chars: 10
+  Strings: unpacked
+  Max bucket size: default
+  Max bucket size, sqrt multiplier: default
+  Max bucket size, len divisor: 4
+  Difference-cover sample period: 1024
+  Endianness: little
+  Actual local endianness: little
+  Sanity checking: disabled
+  Assertions: disabled
+  Random seed: 0
+  Sizeofs: void*:8, int:4, long:8, size_t:8
+Input files DNA, FASTA:
+  ref/Drosophila_melanogaster.BDGP5.fa
+Error: could not open ref/Drosophila_melanogaster.BDGP5.fa
+Total time for call to driver() for forward index: 00:00:00
+Command: bowtie-build --wrapper basic-0 ref/Drosophila_melanogaster.BDGP5.fa tmp 
+]0;/local/data/public/functional_genomics/rnaseqpracfg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ bowtie-build ref/Drosophila_melanogaster.BDGP5.fa tmp[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[1@ [1@-[1@f
+Settings:
+  Output files: "tmp.*.ebwt"
+  Line rate: 6 (line is 64 bytes)
+  Lines per side: 1 (side is 64 bytes)
+  Offset rate: 5 (one in 32)
+  FTable chars: 10
+  Strings: unpacked
+  Max bucket size: default
+  Max bucket size, sqrt multiplier: default
+  Max bucket size, len divisor: 4
+  Difference-cover sample period: 1024
+  Endianness: little
+  Actual local endianness: little
+  Sanity checking: disabled
+  Assertions: disabled
+  Random seed: 0
+  Sizeofs: void*:8, int:4, long:8, size_t:8
+Input files DNA, FASTA:
+  ref/Drosophila_melanogaster.BDGP5.fa
+Error: could not open ref/Drosophila_melanogaster.BDGP5.fa
+Total time for call to driver() for forward index: 00:00:00
+Command: bowtie-build --wrapper basic-0 -f ref/Drosophila_melanogaster.BDGP5.fa tmp 
+]0;/local/data/public/functional_genomics/rnaseqpracfg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ ls ref/Drosophila_melanogaster.BDGP5.
+ls: cannot access ref/Drosophila_melanogaster.BDGP5.: No such file or directory
+]0;/local/data/public/functional_genomics/rnaseqpracfg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ ls ref/Drosophila_melanogaster.BDGP5.f[K
+Drosophila_melanogaster.BDGP5.25.64.gtf                   Drosophila_melanogaster.BDGP5.76.dna.toplevel.3.ebwt
+Drosophila_melanogaster.BDGP5.25.64.gtf.fai               Drosophila_melanogaster.BDGP5.76.dna.toplevel.4.ebwt
+Drosophila_melanogaster.BDGP5.25.64.t2g.txt               Drosophila_melanogaster.BDGP5.76.dna.toplevel.fa
+Drosophila_melanogaster.BDGP5.68.dna.toplevel.fa          Drosophila_melanogaster.BDGP5.76.dna.toplevel.fa.fai
+Drosophila_melanogaster.BDGP5.68.gtf                      Drosophila_melanogaster.BDGP5.76.dna.toplevel.rev.1.ebwt
+Drosophila_melanogaster.BDGP5.76.dna.toplevel.1.ebwt      Drosophila_melanogaster.BDGP5.76.dna.toplevel.rev.2.ebwt
+Drosophila_melanogaster.BDGP5.76.dna.toplevel.2.ebwt      Drosophila_melanogaster.BDGP5.76.gtf
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ ls ref/Drosophila_melanogaster.BDGP5.[K.[K[K[K[K[K[KBDGP5.
+Drosophila_melanogaster.BDGP5.25.64.gtf                   Drosophila_melanogaster.BDGP5.76.dna.toplevel.3.ebwt
+Drosophila_melanogaster.BDGP5.25.64.gtf.fai               Drosophila_melanogaster.BDGP5.76.dna.toplevel.4.ebwt
+Drosophila_melanogaster.BDGP5.25.64.t2g.txt               Drosophila_melanogaster.BDGP5.76.dna.toplevel.fa
+Drosophila_melanogaster.BDGP5.68.dna.toplevel.fa          Drosophila_melanogaster.BDGP5.76.dna.toplevel.fa.fai
+Drosophila_melanogaster.BDGP5.68.gtf                      Drosophila_melanogaster.BDGP5.76.dna.toplevel.rev.1.ebwt
+Drosophila_melanogaster.BDGP5.76.dna.toplevel.1.ebwt      Drosophila_melanogaster.BDGP5.76.dna.toplevel.rev.2.ebwt
+Drosophila_melanogaster.BDGP5.76.dna.toplevel.2.ebwt      Drosophila_melanogaster.BDGP5.76.gtf
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ ls ref/Drosophila_melanogaster.BDGP5.
+Drosophila_melanogaster.BDGP5.25.64.gtf                   Drosophila_melanogaster.BDGP5.76.dna.toplevel.3.ebwt
+Drosophila_melanogaster.BDGP5.25.64.gtf.fai               Drosophila_melanogaster.BDGP5.76.dna.toplevel.4.ebwt
+Drosophila_melanogaster.BDGP5.25.64.t2g.txt               Drosophila_melanogaster.BDGP5.76.dna.toplevel.fa
+Drosophila_melanogaster.BDGP5.68.dna.toplevel.fa          Drosophila_melanogaster.BDGP5.76.dna.toplevel.fa.fai
+Drosophila_melanogaster.BDGP5.68.gtf                      Drosophila_melanogaster.BDGP5.76.dna.toplevel.rev.1.ebwt
+Drosophila_melanogaster.BDGP5.76.dna.toplevel.1.ebwt      Drosophila_melanogaster.BDGP5.76.dna.toplevel.rev.2.ebwt
+Drosophila_melanogaster.BDGP5.76.dna.toplevel.2.ebwt      Drosophila_melanogaster.BDGP5.76.gtf
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ ls ref/Drosophila_melanogaster.BDGP5.76.[K[Kbowtie-build -f ref/Drosophila_melanogaster.BDGP5.fa tmp[3P[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[3@-f [C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[1P tmp[1P tmp
+Drosophila_melanogaster.BDGP5.25.64.gtf                   Drosophila_melanogaster.BDGP5.76.dna.toplevel.3.ebwt
+Drosophila_melanogaster.BDGP5.25.64.gtf.fai               Drosophila_melanogaster.BDGP5.76.dna.toplevel.4.ebwt
+Drosophila_melanogaster.BDGP5.25.64.t2g.txt               Drosophila_melanogaster.BDGP5.76.dna.toplevel.fa
+Drosophila_melanogaster.BDGP5.68.dna.toplevel.fa          Drosophila_melanogaster.BDGP5.76.dna.toplevel.fa.fai
+Drosophila_melanogaster.BDGP5.68.gtf                      Drosophila_melanogaster.BDGP5.76.dna.toplevel.rev.1.ebwt
+Drosophila_melanogaster.BDGP5.76.dna.toplevel.1.ebwt      Drosophila_melanogaster.BDGP5.76.dna.toplevel.rev.2.ebwt
+Drosophila_melanogaster.BDGP5.76.dna.toplevel.2.ebwt      Drosophila_melanogaster.BDGP5.76.gtf
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ bowtie-build -f ref/Drosophila_melanogaster.BDGP5. tmp7 tmp6. tmpd tmpn tmpa.toplevel. tmpf tmpa tmp
+Settings:
+  Output files: "tmp.*.ebwt"
+  Line rate: 6 (line is 64 bytes)
+  Lines per side: 1 (side is 64 bytes)
+  Offset rate: 5 (one in 32)
+  FTable chars: 10
+  Strings: unpacked
+  Max bucket size: default
+  Max bucket size, sqrt multiplier: default
+  Max bucket size, len divisor: 4
+  Difference-cover sample period: 1024
+  Endianness: little
+  Actual local endianness: little
+  Sanity checking: disabled
+  Assertions: disabled
+  Random seed: 0
+  Sizeofs: void*:8, int:4, long:8, size_t:8
+Input files DNA, FASTA:
+  ref/Drosophila_melanogaster.BDGP5.76.dna.toplevel.fa
+Reading reference sizes
+Could not open index file for writing: "tmp.3.ebwt"
+Please make sure the directory exists and that permissions allow writing by
+Bowtie.
+  Time reading reference sizes: 00:00:00
+Total time for call to driver() for forward index: 00:00:00
+Command: bowtie-build --wrapper basic-0 -f ref/Drosophila_melanogaster.BDGP5.76.dna.toplevel.fa tmp 
+]0;/local/data/public/functional_genomics/rnaseqpracfg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ bowtie-build -f ref/Drosophila_melanogaster.BDGP5.76.dna.toplevel.fa tmp[K[K[K[Kbowtie-build -f ref/Drosophila_melanogaster.BDGP5.76.dna.toplevel.fa $[K~/.[K
+.adobe/                    .dbus/                     hi/                        .mozilla/                  .RData                     Templates/
+.bash_history.hertz        default-1.17.0.2-feng.tex  .ICEauthority              Music/                     README.txt                 .texmf-var/
+.bash_history.higgs        Desktop/                   intro/                     nohup.out                  .Rhistory                  .thumbnails/
+.bash_history.subliminal   .distlib/                  .ipython/                  .oracle_jre_usage/         root/                      tmp
+.bash_history.tesla        .dmrc                      .jupyter/                  Pictures/                  .Rprofile                  tree_1.7.0-3_amd64.deb
+.bash_profile              Documents/                 .kde/                      .pinerc                    .Rprofile~                 Typora-linux-x64/
+.bash_profile~             Downloads/                 .lesshst                   .pip/                      ~.Rproj                    Typora-linux-x64.tar.gz
+.bashrc                    elsevier-vancouver.csl     .local/                    .pki/                      .Rproj.user/               Videos/
+.cache/                    .emacs.d/                  .login                     private/                   .rstudio/                  .w3m/
+.colorit                   .gconf/                    .lyx/                      Public/                    .rstudio-desktop/          .Xauthority
+.config/                   .gitconfig                 .macromedia/               public_html/               .ssh/                      .xsession-errors
+.cshrc                     .gnome/                    .motdlastseen              R/                         .subversion/               .xsession-errors.old
+fg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ bowtie-build -f ref/Drosophila_melanogaster.BDGP5.76.dna.toplevel.fa ~/t,[Kmp
+Settings:
+  Output files: "/home/fg368/tmp.*.ebwt"
+  Line rate: 6 (line is 64 bytes)
+  Lines per side: 1 (side is 64 bytes)
+  Offset rate: 5 (one in 32)
+  FTable chars: 10
+  Strings: unpacked
+  Max bucket size: default
+  Max bucket size, sqrt multiplier: default
+  Max bucket size, len divisor: 4
+  Difference-cover sample period: 1024
+  Endianness: little
+  Actual local endianness: little
+  Sanity checking: disabled
+  Assertions: disabled
+  Random seed: 0
+  Sizeofs: void*:8, int:4, long:8, size_t:8
+Input files DNA, FASTA:
+  ref/Drosophila_melanogaster.BDGP5.76.dna.toplevel.fa
+Reading reference sizes
+  Time reading reference sizes: 00:00:02
+Calculating joined length
+Writing header
+Reserving space for joined string
+Joining reference sequences
+  Time to join reference sequences: 00:00:02
+bmax according to bmaxDivN setting: 40591953
+Using parameters --bmax 30443965 --dcv 1024
+  Doing ahead-of-time memory usage test
+  Passed!  Constructing with these parameters: --bmax 30443965 --dcv 1024
+Constructing suffix-array element generator
+Building DifferenceCoverSample
+  Building sPrime
+  Building sPrimeOrder
+  V-Sorting samples
+  V-Sorting samples time: 00:00:06
+  Allocating rank array
+  Ranking v-sort output
+  Ranking v-sort output time: 00:00:02
+  Invoking Larsson-Sadakane on ranks
+  Invoking Larsson-Sadakane on ranks time: 00:00:02
+  Sanity-checking and returning
+Building samples
+Reserving space for 12 sample suffixes
+Generating random suffixes
+QSorting 12 sample offsets, eliminating duplicates
+QSorting sample offsets, eliminating duplicates time: 00:00:00
+Multikey QSorting 12 samples
+  (Using difference cover)
+  Multikey QSorting samples time: 00:00:00
+Calculating bucket sizes
+  Binary sorting into buckets
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Binary sorting into buckets time: 00:00:11
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Split 1, merged 6; iterating...
+  Binary sorting into buckets
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Binary sorting into buckets time: 00:00:10
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Avg bucket size: 2.0296e+07 (target: 30443964)
+Converting suffix-array elements to index image
+Allocating ftab, absorbFtab
+Entering Ebwt loop
+Getting block 1 of 8
+  Reserving size (30443965) for bucket
+  Calculating Z arrays
+  Calculating Z arrays time: 00:00:00
+  Entering block accumulator loop:
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Block accumulator loop time: 00:00:03
+  Sorting block of length 24851555
+  (Using difference cover)
+  Sorting block time: 00:00:23
+Returning block of 24851556
+Getting block 2 of 8
+  Reserving size (30443965) for bucket
+  Calculating Z arrays
+  Calculating Z arrays time: 00:00:00
+  Entering block accumulator loop:
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Block accumulator loop time: 00:00:03
+  Sorting block of length 24280775
+  (Using difference cover)
+  Sorting block time: 00:00:20
+Returning block of 24280776
+Getting block 3 of 8
+  Reserving size (30443965) for bucket
+  Calculating Z arrays
+  Calculating Z arrays time: 00:00:00
+  Entering block accumulator loop:
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Block accumulator loop time: 00:00:03
+  Sorting block of length 22892149
+  (Using difference cover)
+  Sorting block time: 00:00:18
+Returning block of 22892150
+Getting block 4 of 8
+  Reserving size (30443965) for bucket
+  Calculating Z arrays
+  Calculating Z arrays time: 00:00:00
+  Entering block accumulator loop:
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Block accumulator loop time: 00:00:04
+  Sorting block of length 21487162
+  (Using difference cover)
+  Sorting block time: 00:00:17
+Returning block of 21487163
+Getting block 5 of 8
+  Reserving size (30443965) for bucket
+  Calculating Z arrays
+  Calculating Z arrays time: 00:00:00
+  Entering block accumulator loop:
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Block accumulator loop time: 00:00:04
+  Sorting block of length 13222381
+  (Using difference cover)
+  Sorting block time: 00:00:09
+Returning block of 13222382
+Getting block 6 of 8
+  Reserving size (30443965) for bucket
+  Calculating Z arrays
+  Calculating Z arrays time: 00:00:00
+  Entering block accumulator loop:
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Block accumulator loop time: 00:00:03
+  Sorting block of length 18145089
+  (Using difference cover)
+  Sorting block time: 00:00:15
+Returning block of 18145090
+Getting block 7 of 8
+  Reserving size (30443965) for bucket
+  Calculating Z arrays
+  Calculating Z arrays time: 00:00:00
+  Entering block accumulator loop:
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Block accumulator loop time: 00:00:03
+  Sorting block of length 29345304
+  (Using difference cover)
+  Sorting block time: 00:00:21
+Returning block of 29345305
+Getting block 8 of 8
+  Reserving size (30443965) for bucket
+  Calculating Z arrays
+  Calculating Z arrays time: 00:00:00
+  Entering block accumulator loop:
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Block accumulator loop time: 00:00:03
+  Sorting block of length 8143390
+  (Using difference cover)
+  Sorting block time: 00:00:06
+Returning block of 8143391
+Exited Ebwt loop
+fchr[A]: 0
+fchr[C]: 47352930
+fchr[G]: 81257519
+fchr[T]: 115121130
+fchr[$]: 162367812
+Exiting Ebwt::buildToDisk()
+Returning from initFromVector
+Wrote 51038569 bytes to primary EBWT file: /home/fg368/tmp.1.ebwt
+Wrote 20295984 bytes to secondary EBWT file: /home/fg368/tmp.2.ebwt
+Re-opening _in1 and _in2 as input streams
+Returning from Ebwt constructor
+Headers:
+    len: 162367812
+    bwtLen: 162367813
+    sz: 40591953
+    bwtSz: 40591954
+    lineRate: 6
+    linesPerSide: 1
+    offRate: 5
+    offMask: 0xffffffe0
+    isaRate: -1
+    isaMask: 0xffffffff
+    ftabChars: 10
+    eftabLen: 20
+    eftabSz: 80
+    ftabLen: 1048577
+    ftabSz: 4194308
+    offsLen: 5073995
+    offsSz: 20295980
+    isaLen: 0
+    isaSz: 0
+    lineSz: 64
+    sideSz: 64
+    sideBwtSz: 56
+    sideBwtLen: 224
+    numSidePairs: 362429
+    numSides: 724858
+    numLines: 724858
+    ebwtTotLen: 46390912
+    ebwtTotSz: 46390912
+    reverse: 0
+Total time for call to driver() for forward index: 00:03:33
+Reading reference sizes
+  Time reading reference sizes: 00:00:02
+Calculating joined length
+Writing header
+Reserving space for joined string
+Joining reference sequences
+  Time to join reference sequences: 00:00:02
+bmax according to bmaxDivN setting: 40591953
+Using parameters --bmax 30443965 --dcv 1024
+  Doing ahead-of-time memory usage test
+  Passed!  Constructing with these parameters: --bmax 30443965 --dcv 1024
+Constructing suffix-array element generator
+Building DifferenceCoverSample
+  Building sPrime
+  Building sPrimeOrder
+  V-Sorting samples
+  V-Sorting samples time: 00:00:05
+  Allocating rank array
+  Ranking v-sort output
+  Ranking v-sort output time: 00:00:01
+  Invoking Larsson-Sadakane on ranks
+  Invoking Larsson-Sadakane on ranks time: 00:00:02
+  Sanity-checking and returning
+Building samples
+Reserving space for 12 sample suffixes
+Generating random suffixes
+QSorting 12 sample offsets, eliminating duplicates
+QSorting sample offsets, eliminating duplicates time: 00:00:00
+Multikey QSorting 12 samples
+  (Using difference cover)
+  Multikey QSorting samples time: 00:00:00
+Calculating bucket sizes
+  Binary sorting into buckets
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Binary sorting into buckets time: 00:00:11
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Split 1, merged 5; iterating...
+  Binary sorting into buckets
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Binary sorting into buckets time: 00:00:09
+Splitting and merging
+  Splitting and merging time: 00:00:00
+Avg bucket size: 2.0296e+07 (target: 30443964)
+Converting suffix-array elements to index image
+Allocating ftab, absorbFtab
+Entering Ebwt loop
+Getting block 1 of 8
+  Reserving size (30443965) for bucket
+  Calculating Z arrays
+  Calculating Z arrays time: 00:00:00
+  Entering block accumulator loop:
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Block accumulator loop time: 00:00:02
+  Sorting block of length 13274626
+  (Using difference cover)
+  Sorting block time: 00:00:10
+Returning block of 13274627
+Getting block 2 of 8
+  Reserving size (30443965) for bucket
+  Calculating Z arrays
+  Calculating Z arrays time: 00:00:00
+  Entering block accumulator loop:
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Block accumulator loop time: 00:00:03
+  Sorting block of length 17665083
+  (Using difference cover)
+  Sorting block time: 00:00:13
+Returning block of 17665084
+Getting block 3 of 8
+  Reserving size (30443965) for bucket
+  Calculating Z arrays
+  Calculating Z arrays time: 00:00:00
+  Entering block accumulator loop:
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Block accumulator loop time: 00:00:03
+  Sorting block of length 14521099
+  (Using difference cover)
+  Sorting block time: 00:00:11
+Returning block of 14521100
+Getting block 4 of 8
+  Reserving size (30443965) for bucket
+  Calculating Z arrays
+  Calculating Z arrays time: 00:00:00
+  Entering block accumulator loop:
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Block accumulator loop time: 00:00:04
+  Sorting block of length 28590164
+  (Using difference cover)
+  Sorting block time: 00:00:20
+Returning block of 28590165
+Getting block 5 of 8
+  Reserving size (30443965) for bucket
+  Calculating Z arrays
+  Calculating Z arrays time: 00:00:00
+  Entering block accumulator loop:
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Block accumulator loop time: 00:00:04
+  Sorting block of length 25681766
+  (Using difference cover)
+  Sorting block time: 00:00:21
+Returning block of 25681767
+Getting block 6 of 8
+  Reserving size (30443965) for bucket
+  Calculating Z arrays
+  Calculating Z arrays time: 00:00:00
+  Entering block accumulator loop:
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Block accumulator loop time: 00:00:04
+  Sorting block of length 17926356
+  (Using difference cover)
+  Sorting block time: 00:00:13
+Returning block of 17926357
+Getting block 7 of 8
+  Reserving size (30443965) for bucket
+  Calculating Z arrays
+  Calculating Z arrays time: 00:00:00
+  Entering block accumulator loop:
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Block accumulator loop time: 00:00:04
+  Sorting block of length 14284934
+  (Using difference cover)
+  Sorting block time: 00:00:12
+Returning block of 14284935
+Getting block 8 of 8
+  Reserving size (30443965) for bucket
+  Calculating Z arrays
+  Calculating Z arrays time: 00:00:00
+  Entering block accumulator loop:
+  10%
+  20%
+  30%
+  40%
+  50%
+  60%
+  70%
+  80%
+  90%
+  100%
+  Block accumulator loop time: 00:00:03
+  Sorting block of length 30423777
+  (Using difference cover)
+  Sorting block time: 00:00:25
+Returning block of 30423778
+Exited Ebwt loop
+fchr[A]: 0
+fchr[C]: 47352930
+fchr[G]: 81257519
+fchr[T]: 115121130
+fchr[$]: 162367812
+Exiting Ebwt::buildToDisk()
+Returning from initFromVector
+Wrote 51038569 bytes to primary EBWT file: /home/fg368/tmp.rev.1.ebwt
+Wrote 20295984 bytes to secondary EBWT file: /home/fg368/tmp.rev.2.ebwt
+Re-opening _in1 and _in2 as input streams
+Returning from Ebwt constructor
+Headers:
+    len: 162367812
+    bwtLen: 162367813
+    sz: 40591953
+    bwtSz: 40591954
+    lineRate: 6
+    linesPerSide: 1
+    offRate: 5
+    offMask: 0xffffffe0
+    isaRate: -1
+    isaMask: 0xffffffff
+    ftabChars: 10
+    eftabLen: 20
+    eftabSz: 80
+    ftabLen: 1048577
+    ftabSz: 4194308
+    offsLen: 5073995
+    offsSz: 20295980
+    isaLen: 0
+    isaSz: 0
+    lineSz: 64
+    sideSz: 64
+    sideBwtSz: 56
+    sideBwtLen: 224
+    numSidePairs: 362429
+    numSides: 724858
+    numLines: 724858
+    ebwtTotLen: 46390912
+    ebwtTotSz: 46390912
+    reverse: 0
+Total time for backward call to driver() for mirror index: 00:03:27
+]0;/local/data/public/functional_genomics/rnaseqpracfg368@subliminal:/local/data/public/functional_genomics/rnaseqprac $ 

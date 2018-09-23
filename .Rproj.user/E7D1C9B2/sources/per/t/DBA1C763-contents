@@ -1,0 +1,534 @@
+---
+title: "Comments on a de-novo assembled genome"
+# geometry: top=2.24cm, bottom=2.24cm, left=2.4cm, right=2.4cm
+geometry: margin=2.4cm
+papersize: a4paper
+output:
+  pdf_document:
+    pandoc_args:
+      ["-f", "markdown+raw_tex"]
+    keep_tex: true
+    toc: false
+    toc_depth: 3
+    number_sections: true
+    # fig_width: 7
+    fig_caption: true
+    # includes:  
+      # in_header: preamble-latex.tex
+    # template: ~/default-1.17.0.2-feng.tex
+    # includes:
+    #   in_header: preamble.tex
+    # latex_engine: xelatex
+    includes:
+      in_header: latex_topmatter.tex
+    # mainfont: Code2000
+  html_document: default
+  encoding: UTF-8
+# fig_height: 1
+header-includes:
+- \usepackage{float}
+# - \usepackage{placeins}
+- \usepackage{setspace}
+# - \usepackage{chngcntr}
+# - \halfspacing
+- \setstretch{0.75}
+# - \counterwithin{figure}{section}
+# - \counterwithin{table}{section}
+tables: true  
+bibliography: citation.bib
+csl: elsevier-vancouver.csl
+---
+<!-- <style> -->
+<!--     #slide-1 > p { -->
+<!--       margin-top: -50px; -->
+<!--     } -->
+<!-- </style> -->
+\suppressfloats
+```{r setup, include=FALSE, purl=FALSE}
+knitr::opts_chunk$set(echo = F,#root.dir='rpc2017/a1/'
+                      fig.pos = 'h',
+                      cache=F,
+                      eval.after = c('fig.cap','code'),
+                      eval = F,
+                      results ='hide',
+                      fig.height=3,
+                      fig.keep='high'
+                      # ref.label = 
+)
+library(ggplot2)
+.libPaths( c( .libPaths(), "/local/data/public/RLib") )
+library(VennDiagram)
+debug = F
+options(warn=-1)
+```
+
+
+
+```{r}
+library(ggplot2)
+df <- df0
+# df <- df[df$lgth>100,]
+# df <- df[df$lgth>100,]
+# df <- df[df$short1_cov>100,]
+ p <- ggplot(df) + geom_density( aes(x = log10(short1_cov), y = (..density..), weight = lgth), adjust = 3)
+
+# p$layers
+pd<-ggplot_build(p)
+pdata<-data.frame(pd$data)
+pdata<-pdata[pdata$x>1.0,]
+vct <- pdata[which.max(pdata$y),]
+exp_cov <- 10^vct$x
+  round(10^seq(0.7,1.1,by = 0.12))
+
+# p
+```
+
+
+
+
+```{bash}
+velvetg kmer_21
+```
+```{bash}
+velvetg kmer_21_final/ -cov_cutoff 11 			-exp_cov 24 			-min_contig_lgth 2500 			>> kmer_21_final/summary
+echo "finished"
+```
+
+<!-- \suppressfloats -->
+
+```{r, eval = T}
+summary_clean <- function (fname = "kmer_21/summary"){
+  # fname = "kmer_21/summary"
+  lines <- readLines(fname)
+  idx <- grep(">>date.*",lines)
+  if(length(idx)>1){
+    warning("more than one result detected. Using the last set only. Consider text split")
+  }
+  cfname <- paste0(fname,"_clean")
+  writeLines(lines[tail(idx,1):length(lines)],con = file(cfname,'w'))
+}
+# summary_clean()
+
+# ```{r}
+parseit <- function(x){
+    lst <- strsplit(x,',')
+    out <- list()
+    for (l in lst){
+      d <- as.numeric(l[-1])
+        out <- c(out,
+                 switch(l[1],
+                 "param"=
+                   list(
+                     kmer=d[1],
+                     cov_cutoff=d[2],
+                     exp_cov = d[3],
+                     min_contig_lgth = d[4]
+                   ),
+                 "result"=
+                 list(
+                   node_num=d[1],
+                   n50 = d[2],
+                   max_contig_lgth = d[3],
+                   total_contig_lgth = d[4],
+                   used_reads = d[5]
+                   )
+                 )
+               )
+      }
+    return(out)
+}
+
+stats2df<-function(fname= "kmer_21/summary_clean"){
+  
+lines <- readLines(fname )
+idx <- grep("(^\\=+)",lines) + 1
+idx2 <- grep("Final graph",lines)
+# idx2 = idx2[idx2 > idx[1]]
+idxx = sort(c(idx,idx2))
+print(c(length(idx),length(idx2)))
+
+# idxx = idxx[1:(length(idxx)%/%2*2)]
+idxx = idxx[1:(46*2)]
+
+txt <- lines[idxx]
+txt <- gsub( ".+kmer_(\\d+).+cov_cutoff (\\d+).+exp_cov (\\d+).+min_contig_lgth (\\d+).+","param,\\1,\\2,\\3,\\4", 
+             txt )
+txt <- gsub(".+has (\\d+) nodes.+n50 of (\\d+), max (\\d+), total (\\d+), using (\\d+).+","result,\\1,\\2,\\3,\\4,\\5",txt)
+mat <- matrix(txt,2)
+
+ 
+ lst <- apply(
+  mat,
+  MARGIN = 2,
+  FUN = parseit
+  )
+df <- do.call(rbind.data.frame, lst)
+}
+
+# ?switch
+# print (
+#   parseit(x)
+#   
+# )# tst <- gsub( ".+kmer_(\\d+).+cov_cutoff (\\d+).+exp_cov (\\d+).+min_contig_lgth (\\d+).*","\\1,\\2,\\3,\\4", 
+             # lines[idxx] )
+
+
+fnames <- sprintf("kmer_%d/summary",seq(21,51,by = 10))
+lapply(fnames,summary_clean)
+fnames <- sprintf("kmer_%d/summary_clean",seq(21,51,by = 10))
+# for (fname in fnames){
+#   stats2df(fname)
+# }
+lst <- lapply(fnames, FUN = stats2df)
+assemblies <- do.call(rbind.data.frame, lst)
+# library(ggplot2)
+# df$''
+# install.packages("dplyr")
+
+# library(dplyr)
+```
+```{bash}
+. ~/.bash_profile
+for kmer_LENGTH in {21,31,41,51}
+do
+kmer_dir=kmer_${kmer_LENGTH}
+EXP_COV=24
+MIN_CONTIG=2500
+MIN_COV=2
+echo "================================================" >> $kmer_dir/summary_temp
+echo "velvetg $kmer_dir/ -cov_cutoff $MIN_COV \
+#	-exp_cov $EXP_COV \
+  -exp_cov auto \
+	-min_contig_lgth $MIN_CONTIG \
+	>> $kmer_dir/summary" >> $kmer_dir/summary_temp
+velvetg $kmer_dir/ -cov_cutoff $MIN_COV \
+	-exp_cov $EXP_COV \
+	-min_contig_lgth $MIN_CONTIG \
+	>> $kmer_dir/summary_temp
+done
+```
+
+```{r final_vis}
+# "maybe adapt exp_cov to "
+ggplot(df) + geom_point(aes(x = log10(total_contig_lgth), y = log10(n50),colour  = factor(kmer)))
+ggplot(df) + geom_point(aes(x = log10(total_contig_lgth), y = log10(used_reads),colour  = factor(kmer)))
+
+```
+
+```{bash eval = T}
+wc -l "read1.fq" > rcount
+#wc -l "read2.fq" #> rcount
+```
+```{r eval = T}
+res = readLines(file("rcount",'r'))
+readcount = round(as.integer(strsplit(res,' ')[[1]][1]) %/% 2)
+# rm(lines)
+# lines
+specs.BAphid = "Buchnera aphidicola"
+specs.short.BAphid = "B. aphid"
+# genome_size = 
+```
+
+
+<!-- # Abstract -->
+*As sequencing techniques advance, there is an increasing need for fast and reliable computational techniques to interpret the resultant data. Here we present a practice of de-novo genome assembly with velvet @velvet and demonstrate its usefulness using alignment and GO enrichment analyses*
+
+# Introduction
+Genome assembly and annotation have been crucial and routine since the human genome project. Obtaining high quality assembly can be hampered by various factors, including repetitive sequences, biological variation (such as heterozygosity), sequencing errors, etc. Here we attempt an comparative genome anlysis based on de-novo genome assembly using `r sprintf('%d',readcount)` reads from illumina sequencing.
+
+# Material and Method:
+
+## Genome Assembly
+We assessed quality of our paired-end reads using "fastqc" *?* @fastqc . The very last base of both reads are of low quality and trimmed off. The trimmed reads are then processed with "velvet" @velvet to construct a de-novo assembly, with parameters estimated from joint distribution of contig length/contig coverage from the test run. We then tried different combinations of parameters and adopted the assembly with the highest N50 score (Table \ref{tab:best_N50}) @N50 , where N50 is defined as the minimum length of the set of longest contigs that accounts for 50% of the total length of the assembly.
+
+```{r fig__coverage, fig.cap = cap, eval =T, ,fig.height=3 }
+cap = "\\label{fig:vis__coverage} Estimating coverage for kmer_length=21; Left: Coloured by log10(count)"
+df = read.table("kmer_21/stats.txt", header=TRUE)
+df0 <- df[!is.infinite(df$short1_cov),]
+df<- df0
+# p1 <- ggplot(df) + geom_point( aes(lgth,short1_cov, alpha = 0.05), show.legend = F) + 
+#   scale_x_log10()+scale_y_log10() + xlab('contig length (bp)') + ylab('kmer coverage')
+p1 <- ggplot(df)+ geom_bin2d(aes(lgth,short1_cov,fill = log10(..count..)),show.legend = F ) + 
+  scale_x_log10()+scale_y_log10() +
+  xlab('contig length (bp)') + ylab('kmer coverage')
+# p2 <- ggplot(df) + geom_density( aes(x = log10(short1_cov), y = (..density..), weight = lgth), adjust = 3) + 
+  # xlab('log10(kmer coverage)') + ylab("weighted density")
+p2 <- ggplot(df) + geom_density( aes(x = short1_cov, y = (..density..), weight = lgth/sum(lgth) ), adjust = 3) + scale_x_log10() +
+  xlab('kmer coverage') + ylab("length-weighted density") + coord_cartesian(xlim=c(1,50))
+gridExtra::grid.arrange(p1,p2,ncol = 2)
+```
+
+
+## Genomic data
+The obtained contigs are BLASTed against the non-redundant nucleotide collection @blast, using default parameters on webserver. After identifying hte sequenced genome as belonging to *B. aphid* BCc. We downloaded its cDNA annotation from EnsembleBacteria @EnsBac database (assembly [ASM9096v1](http://bacteria.ensembl.org/Buchnera_aphidicola_bcc/Info/Index?db=core). The reference genome of *Escherichia coli* K12 (substrain mds42) (assembly [ASM35018v1](http://bacteria.ensembl.org/Escherichia_coli_str_k_12_substr_mds42/Info/Annotation/#assembly) is downloaded for comparative analysis and homologue identifictaion.
+<!-- Okay so we have two genomes here, and we would like to know what are the genes on them. Given that the ORF finding solution is pretty sophiscated we might just rely on them. In this study we did not attempt a de-novo annotationg because the genome seems to align very well. -->
+
+<!-- It is important to notice that the reliability of the BLAST result is very dependent on the quality of the assembled contig. For example, the smaller contigs are incorrected mapped to other species. *EXPLAIN* -->
+
+
+Based on the better assembly at kmer length of 51, the sequenced genome is confirmed to belong to *B. aphid*. The annotated reference genome was downloaded from EnsembleBacteria @EnsBac database.
+
+
+## Alignment, mapping,and enrichment analysis
+To proceed, we downloaded annotated cDNA for *B. aphid* from ensemble database (assembly [ASM9096v1](http://bacteria.ensembl.org/Buchnera_aphidicola_bcc/Info/Index?db=core)).
+
+We fisrtly used fasta36 @fasta36 to align cDNA from *B. aphid* BCc (query) to cDNA from *E. coli* K12 (library), using a default setting ( E-value_cutoff=10, match/mismatch_scores=+5/-4). The resultant hits are then filtered at a minimum bitscore of 70 based on joint distribution of coverage-bitscore. (figure \ref{fig:align__venn}). For query cDNA that hits multiple library cDNA's, we mapped the query to the best hit (with the highest bitscore).
+
+```{bash fasta_nuc, echo = F, eval = F}
+query=Buchnera_aphidicola_bcc.ASM9096v1.cdna.all.fa
+lib=Escherichia_coli_str_k_12_substr_mds42.GCA_000350185.1.23.cdna.all.names.fa
+fasta36 $query $lib -m10 -T7 -n > fasta36_aln_BAphid.m10
+```
+
+
+<!-- If I have time, I will do a protein-protein alignment since protein homology is easier to identify. -->
+
+The identified *E. Coli* K12 cDNA homologues are then submitted to Panther @panther ["compareToRefList"](http://pantherdb.org/tools/compareToRefList.jsp) to identify molecular functions/cellular processes that are over/underrepresented, using *E. Coli* K12 cDNA's as a reference list.  
+
+# Results
+
+## Quality of the Genome Assembly 
+
+Both forward reads and backward reads are 100-nucleotide long. Upon inspection, we found the 100th base of both reads are of a low quality (Q~29) and thus excluded them from the following analysis. After trimming, all read positions are of a Q score >= 33. 
+
+To estimate the kmer coverage, we ran a default assembly at 21mer without specifying any parameters and plotted the outputed kmer coverage against kmer length. (See figure \ref{fig:vis__coverage}). A strong signal is indentified at kmer coverage ~ 24. A histogram of kmer coverage weighted by kmer length is also plotted to confirm the coverage is near 24. 
+
+To understand the nature of detected signals, further assemblies were attempted. We observe that min_contig_lgth (min contig length) and cov_cutoff (kmer coverage cutoff) are only filtering the output contigs and do not discuss them further. In this particular case where kmer coverage is unimodal, we observe that changing exp_cov (expected coverage) does not alter the result as long as it's higher than the true coverage (data not shown), since there is no issue of resolving biological variants and closely related kmers are always merged into a consensus kmer. Thus we focus on the effect of kmer_legnth, and compare assemblies at kmer length of 21,31,41,51.
+
+<!-- For example, out of the assemblies attempted, the highest N50=419478 is given by the "kmer_length=21, coverage_cutoff=11, exp_coverage=24". However, the shorter contigs (length 2687 and length 9476) from this assembly are actually mapping to species that contradicts the results from the longest contig (length 419478).  -->
+
+ 
+
+Using a longer kmer causes two consequences. Firstly, the kmer_coverage goes down linearly, as a result of kmer's definition. Secondly, the contigs are less likel  y to be merged and more likely to be left as fragments. One possible reason is that the lower coverage makes it less easy to discriminate a rare kmer from an errored kmer, so that it's more likely to have breaks where errors are not correctly resolved. ( Figure \ref{fig:contig_mapping}, Table \ref{tab:assembly_blast}).
+
+From these assemblies, we identify *Buchnera aphidicola* BCc as the sequenced bacteria. Interestingly, a robust contig of “18S ribosomal RNA gene” from *Adineta vaga* is also detected at coverage similar to that of *B. aphid*, possibly due to sample contamination. There are, however, two problems associating with BLASTing the contigs. The first is that BLAST does not exploit information from coexistence of multiple hits to the same genome, which undermines its ability to map poorly assembled contigs. The other problem is that BLAST do not normalise its hit score against the alignment length, making it hard to compare different hits directly, given that e-value is not discriminative for contig identification.
+
+	
+```{r, out.width = "400px",eval = T,fig.cap = cap,,fig.height=3}
+cap = "\\label{fig:contig_mapping} Estimating coverage for kmer_length=21; Left: Coloured by log10(count)"
+knitr::include_graphics("contig_mapping.pdf")
+```
+
+\begin{figure}
+\includegraphics[width=4in]{contig_mapping.pdf}
+\label{fig:contig_mapping}
+\caption{Left:Coverage decreases linearly as kmer length increases}
+\end{figure}
+
+\suppressfloats
+```{r,eval = T,results= 'show'}
+df0 = assemblies
+df = df0[which.max(df0$n50),1:8]
+caption = "\\label{tab:best_N50} Assembly that gave the best N50"
+
+# print(df[which.max(df$n50),])
+
+knitr::kable( 
+  df,
+  booktabs = TRUE,
+  caption = caption,
+  row.names = F
+)
+# knitr::ka
+```
+
+```{bash}
+#ls ../programs/ncbi-blast-2.5.0+/bin/blastn
+blastn=$PWD/../programs/ncbi-blast-2.5.0+/bin/blastn
+cd kmer_21_final
+$blastn -db nr -query contigs.fa -remote -out result.bls
+#ls ../programs/ncbi-blast-2.5.0+/bin/blastn
+```
+
+
+
+\begin{table}
+\begin{tabular}{rrrlrrr}
+\toprule
+ kmer &  query\_len &  coverage &                    hit\_species &   bitscore &  hit\_span &  score\_per\_span \\
+\midrule
+   21 &       2707 &       9.1 &  Macrotrachela quadricornifera &    1048.17 &      1086 &            0.97 \\
+   21 &       9496 &      23.8 &                   Adineta vaga &   11762.40 &      6915 &            1.70 \\
+   21 &     419498 &      23.4 &            Buchnera aphidicola &  166995.00 &     90985 &            1.84 \\
+   31 &       6997 &       7.6 &              Philodina citrina &    4573.42 &      6894 &            0.66 \\
+   31 &       2580 &       6.8 &         Habrotrocha constricta &    1995.50 &      1536 &            1.30 \\
+   31 &       2526 &       5.8 &              Philodina citrina &    1999.20 &      2199 &            0.91 \\
+   31 &      11635 &      18.4 &                   Adineta vaga &   11814.10 &      6915 &            1.71 \\
+   31 &     416298 &      20.8 &            Buchnera aphidicola &  676638.00 &    366416 &            1.85 \\
+   41 &     194256 &      16.8 &            Buchnera aphidicola &  124855.00 &     67614 &            1.85 \\
+   41 &      11403 &      12.3 &                   Adineta vaga &    2905.90 &      1598 &            1.82 \\
+   41 &     240007 &      17.2 &            Buchnera aphidicola &  133996.00 &     72561 &            1.85 \\
+   51 &      91069 &      11.5 &            Buchnera aphidicola &   93408.40 &     50582 &            1.85 \\
+   51 &       4952 &      14.7 &            Buchnera aphidicola &    9145.73 &      4952 &            1.85 \\
+   51 &       7774 &      14.4 &            Buchnera aphidicola &   13731.00 &      7435 &            1.85 \\
+   51 &      12002 &       9.6 &                   Adineta vaga &    3847.69 &      2213 &            1.74 \\
+   51 &      25470 &       9.9 &            Buchnera aphidicola &   47035.30 &     25470 &            1.85 \\
+   51 &      73935 &      11.1 &            Buchnera aphidicola &   47364.00 &     25691 &            1.84 \\
+   51 &     172399 &       8.8 &            Buchnera aphidicola &   43144.40 &     23363 &            1.85 \\
+   51 &     250082 &       9.0 &            Buchnera aphidicola &   76024.00 &     41172 &            1.85 \\
+\bottomrule
+\end{tabular}
+\caption{Best hits from BLASTing long contigs against non-redundant nucleotide collection }
+\label{tab:assembly_blast}
+\end{table}
+
+```{bash}
+kmer_dir=kmer_21_final
+EXP_COV=24
+MIN_CONTIG=2500
+MIN_COV=9
+echo "================================================" >> $kmer_dir/summary
+echo "velvetg $kmer_dir/ -cov_cutoff $MIN_COV \
+	-exp_cov $EXP_COV \
+	-min_contig_lgth $MIN_CONTIG \
+	>> $kmer_dir/summary" >> $kmer_dir/summary
+velvetg $kmer_dir/ -cov_cutoff $MIN_COV \
+	-exp_cov $EXP_COV \
+	-min_contig_lgth $MIN_CONTIG \
+	>> $kmer_dir/summary 
+```
+
+
+## Genome comparison
+To better understand the quality of deposited, annotated genome of *B. aphid*, we compare it against a representative genome *E. coli* K12. Here we present some general comments before performing the alignment.
+
+Although the two genomes are of different absolute sizes and contain different number of genes, the relative density of genes are similar (~0.82 gene per kbp, Table \ref{tab:genome}). However, the *E. coli* genome has a higher content of predicted genes without good biological evidence, whereas most of *B. aphid* genes are inferred with strong homology @science. The smaller size of *B. aphid*'s genome is also a result it living inside its symbiotant aphid *Cinara tujafilina* @science, which means *B. aphid* is not under evolution pressure such as hostile environemnt or food seeking, and is only required to retain the core biosynthetic machinery for successful reproduction. 
+
+
+## Alignment for Identification
+To identify the homologues, we align the annotated cDNA's in the *B. aphid* genome to the *E. coli* cDNA library. 
+
+We identified many hits were of low quality and only spanned a portion of the query cDNA (Figure \ref{fig:align_venn}).and filtered them out (bitscore > 70). This is essential for finding the true homologous genes, and remove the partial homologues that either indicates conserved protein domains or simply noise. 
+
+Out of the resultant reliable hits, some query genes are mapped to more than one gene in the library. This is due to many genes in *E. coli*  coexisting with many paralogues \ref{tab:alt_map}, that can be either a functional gene or incorrect annotation. But this kind of redudancy still permits a unqiue identification of the gene's functionality.  
+
+On the other hand, some genes in *B. aphid* cannot be reliably mapped to any *E. coli* gene, possibly because their genomes have diverged so much and specilised into different forms. In the original annotation, homologues were inferred from the more closely related species and we assume they were of a good quality @science. Finally, 249 *B. aphid* genes are uniquely mapped to their best-match homologue from *E. coli*.
+
+```{r,eval = T}
+fname = "Escherichia_coli_str_k_12_substr_mds42.GCA_000350185.1.23.cdna.all.names.fa"
+txt = readLines(fname)
+gene_count = sum(grepl(">",txt))
+predicted = sum(grepl("predicted|hypothetical",txt))
+
+f1 = list(
+  species = "E. coli K12, mds42",
+  genome_size = 4641652,
+  gene_count  = gene_count,
+  predicted   = predicted
+)
+
+fname = "Buchnera_aphidicola_bcc.ASM9096v1.cdna.all.fa"
+txt = readLines(fname)
+gene_count = sum(grepl(">",txt))
+predicted = sum(grepl("predicted|hypothetical",txt))
+
+f2 = list(
+  species = "B. aphid BCc",
+  genome_size = 416380,
+  gene_count  = gene_count,
+  predicted   = predicted
+)
+genomes = rbind.data.frame(f1,f2)
+```
+
+```{r,eval =T,results = 'show'}
+# "Buchnera_aphidicola_bcc.ASM9096v1.cdna.all.fa"
+
+
+genomes$"gene per kbp" = 1000* genomes$gene_count / genomes$genome_size
+genomes$"predicted per kbp" = 1000* genomes$predicted / genomes$genome_size
+
+
+df = genomes
+caption = "\\label{tab:genome} Comparing the two genomes"
+
+knitr::kable( 
+  df,
+  booktabs = TRUE,
+  caption = caption,
+  row.names = F
+)
+# predicted
+# ?grep
+# sizes = 
+```
+
+
+```{r,eval = T}
+aln = read.csv('fasta_aln.csv',header = T)
+```
+
+```{r,eval = T}
+p0 = ggplot(aln) + geom_point(aes(x = bitscore,y = query_coverage_linear)) + 
+    scale_x_log10()+scale_y_log10() + geom_vline( xintercept = 70,color = 'red')
+```
+
+
+```{r,eval = T,fig.keep = 'last',fig.cap = cap,results='hide'}
+cap = "\\label{fig:align_venn} Left:\\ Quality of hits;\\ Right:\\ Overlap of genes between the two genomes"
+
+p1 <- draw.pairwise.venn(genomes$gene_count[1], genomes$gene_count[2], 249,
+                   category = genomes$species,
+                   lty = rep("blank", 2), 
+                   fill = c("light blue", "pink"), 
+                   alpha= rep(0.5, 2), 
+                   cat.pos = c(0, 0), 
+                   cat.dist = rep(0.025, 2))
+p1 = grid::gTree(children = p1)
+
+# install.packages('lambda.r',lib = '/local/data/public/RLib')
+# install.packages('futile.options',lib = '/local/data/public/RLib')
+# install.packages('futile.logger',lib = '/local/data/public/RLib')
+# install.packages('VennDiagram',lib = '/local/data/public/RLib',dependencies = T)
+
+grid::grid.newpage()
+# ?draw.pairwise.venn
+gridExtra::grid.arrange(p0,p1,ncol=2)
+# grid::g
+# gpar()
+```
+
+
+\newpage
+
+## Gene Ontology Analysis
+We used the resultant homologues for gene ontology analyses. The most enriched GO processes are translation and biosynthetic process, whereas the most enriched GO functions are ribosomal structures and RNA bindings.  (Table \ref{tab:go_process},\ref{tab:go_function}) This is inline with the earlier report that *B. aphid* is symbiotic, has lost most of the redundant genes during its symbiotic evolution and only retained the core replication machinery. There is also a significant depletion of GO function "transmembrane transporter activity", that is conceivably related to the simplified living environment. 
+
+
+```{r ,eval = T,results = "show"}
+go.process = read.table("go_process.txt",header = T,sep = '\t')
+# colnames 
+go.function = read.table("go_function.txt",header = T,sep = '\t')
+df = go.process[,-5]
+caption = "\\label{tab:go_process}Enriched GO process. Only the leaf nodes are displayed"
+knitr::kable( 
+  df,
+  booktabs = TRUE,
+  caption = caption,
+  row.names = F,
+  digits = 20
+)
+```
+<!-- \newpage -->
+
+\suppressfloats
+```{r ,eval = T,results = "show"}
+cat("\n")
+caption = "\\label{tab:go_function}Enriched GO function. Only the leaf nodes are displayed"
+df = go.function[,-5]
+knitr::kable( 
+  df,
+  booktabs = TRUE,
+  caption = caption,
+  row.names = F,
+    digits = 20
+
+)
+# options(digits =20)
+```
+
+# Conclusion
+Using de-novo sequence assembly, we successfully reconstructed the original genome from the sequncing reads, with discussion on possible tradeoffs in choosing the parameters. The genome is subsequently identified to belong to *B. aphid* BCc with BLAST, following by a comment on this methodology and on the morphology of this genome using *E. coli* K12 as a reference. Furthermore, we mapped 249 *B. aphid* genes to corresponding homologues from *E. coli* as guided by FASTA alignments, and performed a GO term enrichment analysis to obtain evidence that supported the previously reported genome reudction in symbiotic evolution.
+
+# References
+<div id="refs"></div> 
